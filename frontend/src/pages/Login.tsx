@@ -5,9 +5,9 @@ import type { AuthUser } from '../lib/auth';
 import { Role } from '../lib/roles';
 
 const MOCK_USERS: AuthUser[] = [
-  { id: 1, name: 'אדמין ראשי', email: 'admin@cursit.dev', role: Role.ADMIN },
-  { id: 2, name: 'שרה כהן', email: 'sarah@cursit.dev', role: Role.TEACHER },
-  { id: 3, name: 'נועה כהן', email: 'noa@cursit.dev', role: Role.STUDENT },
+  { id: 100, name: 'אדמין ראשי', email: 'admin@cursit.dev', role: Role.ADMIN },
+  { id: 101, name: 'שרה כהן', email: 'sarah@cursit.dev', role: Role.TEACHER },
+  { id: 2, name: 'נועה כהן', email: 'noa@cursit.dev', role: Role.STUDENT },
 ];
 
 type LoginProps = {
@@ -32,7 +32,6 @@ export const Login = ({ onLogin }: LoginProps) => {
       className='flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50'
     >
       <div className='w-full max-w-md'>
-        {/* Logo */}
         <div className='mb-8 text-center'>
           <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25'>
             <BookOpen size={32} className='text-white' />
@@ -41,7 +40,6 @@ export const Login = ({ onLogin }: LoginProps) => {
           <p className='mt-2 text-sm text-muted-foreground'>מערכת ניהול קורסים ומעקב ציונים</p>
         </div>
 
-        {/* Login Card */}
         <div className='rounded-2xl border border-border bg-white p-8 shadow-xl shadow-black/5'>
           <h2 className='mb-1 text-lg font-semibold text-foreground'>התחברות</h2>
           <p className='mb-6 text-sm text-muted-foreground'>בחר משתמש להתחברות (סביבת פיתוח)</p>

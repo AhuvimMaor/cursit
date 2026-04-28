@@ -1,4 +1,4 @@
-import { Award, GraduationCap, Target, TrendingUp } from 'lucide-react';
+import { Award, BookOpen, CheckCircle2, GraduationCap, Target, TrendingUp } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -8,12 +8,102 @@ import { StatCard } from '../components/StatCard';
 import { useApi } from '../hooks/useApi';
 import type { Score } from '../lib/api';
 import { api } from '../lib/api';
+import type { AuthUser } from '../lib/auth';
+import { Role } from '../lib/roles';
 
 type DashboardProps = {
+  user: AuthUser;
   onStudentClick: (id: number) => void;
 };
 
-export const Dashboard = ({ onStudentClick }: DashboardProps) => {
+function StudentDashboard({ user }: { user: AuthUser }) {
+  const fetchScores = useCallback(() => api.getScores(), []);
+  const fetchMissions = useCallback(() => api.getMissions(), []);
+  const { data: scores, loading: l1 } = useApi(fetchScores);
+  const { data: missions, loading: l2 } = useApi(fetchMissions);
+
+  const stats = useMemo(() => {
+    if (!scores || !missions) return null;
+    const myScores = scores.filter((sc) => sc.studentId === user.id);
+    const avg =
+      myScores.length > 0
+        ? Math.round(myScores.reduce((s, sc) => s + sc.score, 0) / myScores.length)
+        : 0;
+    const totalPossible = myScores.reduce((sum, sc) => sum + (sc.mission?.maxScore ?? 100), 0);
+    const totalEarned = myScores.reduce((sum, sc) => sum + sc.score, 0);
+    const pct = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
+    return { avg, pct, completed: myScores.length, total: missions.length, myScores };
+  }, [scores, missions, user.id]);
+
+  if (l1 || l2) return <LoadingSpinner />;
+  if (!stats) return null;
+
+  return (
+    <div className='space-y-8'>
+      <div>
+        <h1 className='text-2xl font-bold text-foreground'>שלום, {user.name} 👋</h1>
+        <p className='mt-1 text-sm text-muted-foreground'>סיכום ההתקדמות שלך בקורס</p>
+      </div>
+
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+        <StatCard
+          title='ציון ממוצע'
+          value={stats.avg}
+          subtitle='על פני כל המשימות'
+          icon={<Award size={24} className='text-emerald-600' />}
+          color='bg-emerald-50'
+        />
+        <StatCard
+          title='אחוז כללי'
+          value={`${stats.pct}%`}
+          subtitle='מתוך הניקוד המקסימלי'
+          icon={<TrendingUp size={24} className='text-blue-600' />}
+          color='bg-blue-50'
+        />
+        <StatCard
+          title='משימות שהוגשו'
+          value={`${stats.completed}/${stats.total}`}
+          subtitle={`${Math.round((stats.completed / stats.total) * 100)}% הושלמו`}
+          icon={<CheckCircle2 size={24} className='text-purple-600' />}
+          color='bg-purple-50'
+        />
+        <StatCard
+          title='משימות נותרו'
+          value={stats.total - stats.completed}
+          subtitle='טרם הוגשו'
+          icon={<BookOpen size={24} className='text-amber-600' />}
+          color='bg-amber-50'
+        />
+      </div>
+
+      <div className='rounded-xl border border-border bg-white p-6 shadow-sm'>
+        <h2 className='mb-4 text-lg font-semibold text-foreground'>ההגשות שלי</h2>
+        {stats.myScores.length === 0 ? (
+          <p className='py-8 text-center text-sm text-muted-foreground'>אין הגשות עדיין</p>
+        ) : (
+          <div className='space-y-3'>
+            {stats.myScores.map((sc: Score) => (
+              <div
+                key={sc.id}
+                className='flex items-center justify-between rounded-lg border border-border p-4'
+              >
+                <div>
+                  <p className='text-sm font-medium text-foreground'>{sc.mission?.title}</p>
+                  {sc.comment && (
+                    <p className='mt-0.5 text-xs text-muted-foreground'>{sc.comment}</p>
+                  )}
+                </div>
+                <ScoreBadge score={sc.score} maxScore={sc.mission?.maxScore ?? 100} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AdminDashboard({ onStudentClick }: { onStudentClick: (id: number) => void }) {
   const fetchStudents = useCallback(() => api.getStudents(), []);
   const fetchMissions = useCallback(() => api.getMissions(), []);
   const fetchScores = useCallback(() => api.getScores(), []);
@@ -34,7 +124,7 @@ export const Dashboard = ({ onStudentClick }: DashboardProps) => {
         studentScores.length > 0
           ? Math.round(studentScores.reduce((s, sc) => s + sc.score, 0) / studentScores.length)
           : 0;
-      return { ...st, avg, completed: studentScores.length, scores: studentScores };
+      return { ...st, avg, completed: studentScores.length };
     });
 
     const topStudents = [...studentAvgs].sort((a, b) => b.avg - a.avg).slice(0, 5);
@@ -48,11 +138,20 @@ export const Dashboard = ({ onStudentClick }: DashboardProps) => {
       return { ...m, submissions: mScores.length };
     });
 
-    return { avgScore, completionRate, studentAvgs, topStudents, recentScores, missionStats };
+    return {
+      avgScore,
+      completionRate,
+      topStudents,
+      recentScores,
+      missionStats,
+      studentCount: students.length,
+      missionCount: missions.length,
+      scoreCount: scores.length,
+    };
   }, [students, missions, scores]);
 
   if (l1 || l2 || l3) return <LoadingSpinner />;
-  if (!students || !missions || !scores || !stats) return null;
+  if (!stats) return null;
 
   return (
     <div className='space-y-8'>
@@ -64,14 +163,14 @@ export const Dashboard = ({ onStudentClick }: DashboardProps) => {
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         <StatCard
           title='תלמידים'
-          value={students.length}
+          value={stats.studentCount}
           subtitle='רשומים לקורס'
           icon={<GraduationCap size={24} className='text-blue-600' />}
           color='bg-blue-50'
         />
         <StatCard
           title='משימות'
-          value={missions.length}
+          value={stats.missionCount}
           subtitle='סה"כ מטלות'
           icon={<Target size={24} className='text-purple-600' />}
           color='bg-purple-50'
@@ -86,7 +185,7 @@ export const Dashboard = ({ onStudentClick }: DashboardProps) => {
         <StatCard
           title='השלמה'
           value={`${stats.completionRate}%`}
-          subtitle={`${scores.length} / ${students.length * missions.length} הוגשו`}
+          subtitle={`${stats.scoreCount} / ${stats.studentCount * stats.missionCount} הוגשו`}
           icon={<TrendingUp size={24} className='text-amber-600' />}
           color='bg-amber-50'
         />
@@ -123,10 +222,10 @@ export const Dashboard = ({ onStudentClick }: DashboardProps) => {
                 <div className='flex items-center justify-between'>
                   <p className='text-sm font-medium text-foreground'>{m.title}</p>
                   <span className='text-xs text-muted-foreground'>
-                    {m.submissions}/{students.length} הוגשו
+                    {m.submissions}/{stats.studentCount} הוגשו
                   </span>
                 </div>
-                <ProgressBar value={m.submissions} max={students.length} />
+                <ProgressBar value={m.submissions} max={stats.studentCount} />
               </div>
             ))}
           </div>
@@ -172,4 +271,11 @@ export const Dashboard = ({ onStudentClick }: DashboardProps) => {
       </div>
     </div>
   );
+}
+
+export const Dashboard = ({ user, onStudentClick }: DashboardProps) => {
+  if (user.role === Role.STUDENT) {
+    return <StudentDashboard user={user} />;
+  }
+  return <AdminDashboard onStudentClick={onStudentClick} />;
 };
