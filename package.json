@@ -1,0 +1,41 @@
+{
+  "name": "cursit",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3000",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "check": "prettier --write . && eslint --fix",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,json,css,md,html}": "prettier --write",
+    "*.{ts,tsx}": "eslint --fix"
+  },
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.2.4",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react-swc": "^4.3.0",
+    "eslint": "^10.2.1",
+    "globals": "^17.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.1"
+  }
+}
