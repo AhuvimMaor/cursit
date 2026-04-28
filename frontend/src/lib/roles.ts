@@ -6,8 +6,8 @@ export enum Role {
 }
 
 export const HEBREW_ROLES: Record<Role, string> = {
-  [Role.BIS_CDR]: 'מפקד ביס',
-  [Role.BRANCH_COORD]: 'קה"ד ענפי',
+  [Role.BIS_CDR]: 'מנהל מערכת',
+  [Role.BRANCH_COORD]: 'רכז ענפי',
   [Role.TEAM_LEADER]: 'ראש צוות',
-  [Role.TRAINEE]: 'חניך',
+  [Role.TRAINEE]: 'משתתף',
 };

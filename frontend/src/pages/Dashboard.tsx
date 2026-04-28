@@ -49,9 +49,9 @@ export const Dashboard = ({ user }: DashboardProps) => {
       <div>
         <h1 className='text-2xl font-bold text-foreground'>{greeting}</h1>
         <p className='mt-1 text-sm text-muted-foreground'>
-          {user.role === Role.BIS_CDR && 'סקירת מערכת ביס 60'}
-          {user.role === Role.BRANCH_COORD && `קה"ד ${user.branch?.name ?? ''}`}
-          {user.role === Role.TEAM_LEADER && `רש"צ ${user.team?.name ?? ''}`}
+          {user.role === Role.BIS_CDR && 'סקירת מערכת הדרכה'}
+          {user.role === Role.BRANCH_COORD && `רכז ${user.branch?.name ?? ''}`}
+          {user.role === Role.TEAM_LEADER && `${user.team?.name ?? ''}`}
           {user.role === Role.TRAINEE && 'מערכת הדרכה וקורסים'}
         </p>
       </div>

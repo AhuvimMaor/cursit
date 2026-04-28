@@ -12,15 +12,15 @@ generator client {
 // ──────────────────────────────────────────
 
 enum UserRole {
-  BIS_CDR        // מפקד ביס — אישור סופי, ניהול מלא
-  BRANCH_COORD   // קה"ד ענפי — תיעדוף ואישור ענפי
-  TEAM_LEADER    // ראש צוות (רש"צ) — הגשת מועמדות לפיקוד
-  TRAINEE        // חניך — רישום לקורסים מתקדמים
+  BIS_CDR
+  BRANCH_COORD
+  TEAM_LEADER
+  TRAINEE
 }
 
 enum CourseType {
-  FOUNDATION     // קורס יסוד — הגשת מועמדות לפיקוד
-  ADVANCED       // קורס מתקדם — רישום + שרשרת אישורים
+  FOUNDATION
+  ADVANCED
 }
 
 enum CourseInstanceStatus {
@@ -31,27 +31,27 @@ enum CourseInstanceStatus {
 }
 
 enum PhaseType {
-  CANDIDACY_SUBMISSION  // הגשת מועמדות לפיקוד
-  TRYOUTS              // מיונים לפיקוד
-  COMMANDER_COURSE     // קורס פיקוד
-  STAFF_PREP           // הכנת סגל
-  COURSE               // הקורס עצמו
-  SUMMARY_WEEK         // שבוע סיכומים
+  CANDIDACY_SUBMISSION
+  TRYOUTS
+  COMMANDER_COURSE
+  STAFF_PREP
+  COURSE
+  SUMMARY_WEEK
   OTHER
 }
 
 enum CandidacyStatus {
-  PENDING           // ממתין לבדיקת קה"ד
-  COORD_REVIEWED    // קה"ד עבר, ממתין לאישור מפקד ביס
-  APPROVED          // אושר ע"י מפקד ביס
-  REJECTED          // נדחה
+  PENDING
+  COORD_REVIEWED
+  APPROVED
+  REJECTED
 }
 
 enum RegistrationStatus {
-  PENDING_COORD     // חניך הגיש, ממתין לתיעדוף קה"ד
-  PENDING_BIS       // קה"ד אישר, ממתין לאישור מפקד ביס
-  APPROVED          // אושר סופית
-  REJECTED          // נדחה
+  PENDING_COORD
+  PENDING_BIS
+  APPROVED
+  REJECTED
 }
 
 // ──────────────────────────────────────────
@@ -189,14 +189,14 @@ model CourseRegistration {
   status           RegistrationStatus @default(PENDING_COORD)
   formData         Json?
 
-  // קה"ד approval
+  
   coordApprovedById Int?
   coordApprovedBy   User?     @relation("CoordApprover", fields: [coordApprovedById], references: [id])
   coordApprovedAt   DateTime?
   coordNotes        String?   @db.Text
   coordPriority     Int?      // תיעדוף ענפי
 
-  // מפקד ביס approval
+  
   bisApprovedById   Int?
   bisApprovedBy     User?     @relation("BisApprover", fields: [bisApprovedById], references: [id])
   bisApprovedAt     DateTime?

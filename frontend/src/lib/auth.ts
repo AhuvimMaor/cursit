@@ -21,8 +21,14 @@ export const loadUser = (): AuthUser | null => {
   const raw = localStorage.getItem(AUTH_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as AuthUser;
+    const user = JSON.parse(raw) as AuthUser;
+    if (!user.role || !user.id || !user.uniqueId) {
+      localStorage.removeItem(AUTH_KEY);
+      return null;
+    }
+    return user;
   } catch {
+    localStorage.removeItem(AUTH_KEY);
     return null;
   }
 };

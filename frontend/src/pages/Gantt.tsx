@@ -17,8 +17,8 @@ const PHASE_COLORS: Record<string, string> = {
 const PHASE_LABELS: Record<string, string> = {
   CANDIDACY_SUBMISSION: 'הגשת מועמדות',
   TRYOUTS: 'מיונים',
-  COMMANDER_COURSE: 'קורס פיקוד',
-  STAFF_PREP: 'הכנת סגל',
+  COMMANDER_COURSE: 'הכשרה',
+  STAFF_PREP: 'הכנת צוות',
   COURSE: 'הקורס',
   SUMMARY_WEEK: 'סיכומים',
   OTHER: 'אחר',

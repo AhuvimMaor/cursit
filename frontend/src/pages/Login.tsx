@@ -50,7 +50,7 @@ export const Login = ({ onLogin }: LoginProps) => {
           <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25'>
             <BookOpen size={32} className='text-white' />
           </div>
-          <h1 className='text-3xl font-bold text-foreground'>ביס 60</h1>
+          <h1 className='text-3xl font-bold text-foreground'>Coursit</h1>
           <p className='mt-2 text-sm text-muted-foreground'>מערכת ניהול הדרכה וקורסים</p>
         </div>
 

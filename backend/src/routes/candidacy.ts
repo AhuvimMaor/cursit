@@ -4,7 +4,6 @@ import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
 export const candidacyRoutes = async (fastify: FastifyInstance) => {
-  // רש"צ מגיש מועמדות
   fastify.post<{
     Body: {
       courseInstanceId: number;
@@ -30,7 +29,6 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // רש"צ — המועמדויות שהגשתי
   fastify.get(
     '/my-submissions',
     { preHandler: [authenticate, requireRole('TEAM_LEADER')] },
@@ -46,7 +44,6 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // קה"ד — מועמדויות הענף
   fastify.get(
     '/branch',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
@@ -65,7 +62,6 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // קה"ד — סימון כנבדק
   fastify.patch<{ Params: { id: string } }>(
     '/:id/coord-review',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
@@ -77,7 +73,6 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // מפקד ביס — כל המועמדויות
   fastify.get('/all', { preHandler: [authenticate, requireRole('BIS_CDR')] }, async () => {
     return prisma.commandCandidacy.findMany({
       include: {
@@ -90,7 +85,6 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     });
   });
 
-  // מפקד ביס — אישור
   fastify.patch<{ Params: { id: string }; Body: { reviewNotes?: string } }>(
     '/:id/approve',
     { preHandler: [authenticate, requireRole('BIS_CDR')] },
@@ -106,7 +100,6 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // מפקד ביס — דחייה
   fastify.patch<{ Params: { id: string }; Body: { reviewNotes?: string } }>(
     '/:id/reject',
     { preHandler: [authenticate, requireRole('BIS_CDR')] },

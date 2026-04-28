@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const main = async () => {
-  console.log('Seeding ביס 60 dev data...');
+  console.log('Seeding dev data...');
 
   // ── Branches ──
   const branches = await Promise.all([
@@ -24,15 +24,15 @@ const main = async () => {
   console.log(`Created ${teams.length} teams`);
 
   // ── Users ──
-  const bisCdr = await prisma.user.create({
-    data: { uniqueId: '1000000', name: 'סא"ל דוד כהן', role: 'BIS_CDR' },
+  const admin = await prisma.user.create({
+    data: { uniqueId: '1000000', name: 'דוד כהן', role: 'BIS_CDR' },
   });
 
   const coords = await Promise.all([
     prisma.user.create({
       data: {
         uniqueId: '2000001',
-        name: 'רס"ן שרה לוי',
+        name: 'שרה לוי',
         role: 'BRANCH_COORD',
         branchId: branches[0].id,
       },
@@ -40,7 +40,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '2000002',
-        name: 'רס"ן יוסי אברהם',
+        name: 'יוסי אברהם',
         role: 'BRANCH_COORD',
         branchId: branches[1].id,
       },
@@ -48,7 +48,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '2000003',
-        name: 'רס"ן מיכל דוד',
+        name: 'מיכל דוד',
         role: 'BRANCH_COORD',
         branchId: branches[2].id,
       },
@@ -59,7 +59,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '3000001',
-        name: 'סמ"ר נועה מזרחי',
+        name: 'נועה מזרחי',
         role: 'TEAM_LEADER',
         teamId: teams[0].id,
         branchId: branches[0].id,
@@ -68,7 +68,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '3000002',
-        name: 'סמ"ר אורי גולן',
+        name: 'אורי גולן',
         role: 'TEAM_LEADER',
         teamId: teams[1].id,
         branchId: branches[0].id,
@@ -77,7 +77,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '3000003',
-        name: 'סמ"ר תמר פרץ',
+        name: 'תמר פרץ',
         role: 'TEAM_LEADER',
         teamId: teams[2].id,
         branchId: branches[1].id,
@@ -86,7 +86,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '3000004',
-        name: 'סמ"ר דניאל רוזנברג',
+        name: 'דניאל רוזנברג',
         role: 'TEAM_LEADER',
         teamId: teams[3].id,
         branchId: branches[1].id,
@@ -95,7 +95,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '3000005',
-        name: 'סמ"ר שירה כהן',
+        name: 'שירה כהן',
         role: 'TEAM_LEADER',
         teamId: teams[4].id,
         branchId: branches[2].id,
@@ -104,11 +104,10 @@ const main = async () => {
   ]);
 
   const trainees = await Promise.all([
-    // צוות אלפא
     prisma.user.create({
       data: {
         uniqueId: '4000001',
-        name: 'טוראי יונתן לוי',
+        name: 'יונתן לוי',
         role: 'TRAINEE',
         teamId: teams[0].id,
         branchId: branches[0].id,
@@ -117,7 +116,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '4000002',
-        name: 'טוראי מאיה אברהם',
+        name: 'מאיה אברהם',
         role: 'TRAINEE',
         teamId: teams[0].id,
         branchId: branches[0].id,
@@ -126,17 +125,16 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '4000003',
-        name: 'טוראי עידו כהן',
+        name: 'עידו כהן',
         role: 'TRAINEE',
         teamId: teams[0].id,
         branchId: branches[0].id,
       },
     }),
-    // צוות בראבו
     prisma.user.create({
       data: {
         uniqueId: '4000004',
-        name: 'טוראי רונה דוד',
+        name: 'רונה דוד',
         role: 'TRAINEE',
         teamId: teams[1].id,
         branchId: branches[0].id,
@@ -145,17 +143,16 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '4000005',
-        name: 'טוראי אלון פרידמן',
+        name: 'אלון פרידמן',
         role: 'TRAINEE',
         teamId: teams[1].id,
         branchId: branches[0].id,
       },
     }),
-    // צוות גאמא
     prisma.user.create({
       data: {
         uniqueId: '4000006',
-        name: 'טוראי שקד מזרחי',
+        name: 'שקד מזרחי',
         role: 'TRAINEE',
         teamId: teams[2].id,
         branchId: branches[1].id,
@@ -164,27 +161,25 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '4000007',
-        name: 'טוראי ליאור גולן',
+        name: 'ליאור גולן',
         role: 'TRAINEE',
         teamId: teams[2].id,
         branchId: branches[1].id,
       },
     }),
-    // צוות דלתא
     prisma.user.create({
       data: {
         uniqueId: '4000008',
-        name: 'טוראי נגה רוזנברג',
+        name: 'נגה רוזנברג',
         role: 'TRAINEE',
         teamId: teams[3].id,
         branchId: branches[1].id,
       },
     }),
-    // צוות הדס
     prisma.user.create({
       data: {
         uniqueId: '4000009',
-        name: 'טוראי תומר שמעוני',
+        name: 'תומר שמעוני',
         role: 'TRAINEE',
         teamId: teams[4].id,
         branchId: branches[2].id,
@@ -193,7 +188,7 @@ const main = async () => {
     prisma.user.create({
       data: {
         uniqueId: '4000010',
-        name: 'טוראי הילה ברקוביץ',
+        name: 'הילה ברקוביץ',
         role: 'TRAINEE',
         teamId: teams[4].id,
         branchId: branches[2].id,
@@ -202,26 +197,26 @@ const main = async () => {
   ]);
 
   console.log(
-    `Created users: 1 BIS_CDR, ${coords.length} BRANCH_COORD, ${teamLeaders.length} TEAM_LEADER, ${trainees.length} TRAINEE`,
+    `Created users: 1 admin, ${coords.length} coords, ${teamLeaders.length} leaders, ${trainees.length} trainees`,
   );
 
   // ── Courses ──
   const foundationCourses = await Promise.all([
     prisma.course.create({
       data: {
-        name: 'קורס מ"פים',
-        description: 'קורס הכשרת מפקדי פלוגות. כולל מיונים, הכשרת פיקוד, והקורס עצמו.',
+        name: 'קורס הכשרת מנהלים',
+        description: 'קורס הכשרת מנהלים בכירים. כולל מיונים, הכשרה, והקורס עצמו.',
         type: 'FOUNDATION',
-        location: 'בסיס הדרכה מרכזי',
+        location: 'מרכז הדרכה ראשי',
         isPublished: true,
       },
     }),
     prisma.course.create({
       data: {
-        name: 'קורס רש"צים',
-        description: 'קורס הכשרת ראשי צוותים. תפקיד פיקודי ראשון.',
+        name: 'קורס ראשי צוותות',
+        description: 'קורס הכשרת ראשי צוותות. תפקיד ניהולי ראשון.',
         type: 'FOUNDATION',
-        location: 'בסיס הדרכה מרכזי',
+        location: 'מרכז הדרכה ראשי',
         isPublished: true,
       },
     }),
@@ -264,7 +259,7 @@ const main = async () => {
     prisma.course.create({
       data: {
         name: 'קורס ניהול פרויקטים',
-        description: 'מתודולוגיות ניהול פרויקטים, Agile ו-Scrum. מותאם לעולם הצבאי.',
+        description: 'מתודולוגיות ניהול פרויקטים, Agile ו-Scrum.',
         type: 'ADVANCED',
         gmushHours: 16,
         isPublished: true,
@@ -277,7 +272,7 @@ const main = async () => {
   );
 
   // ── Course Instances ──
-  const mfpInstance = await prisma.courseInstance.create({
+  const mgrInstance = await prisma.courseInstance.create({
     data: {
       courseId: foundationCourses[0].id,
       name: 'מחזור 42',
@@ -287,7 +282,7 @@ const main = async () => {
     },
   });
 
-  const rashatzInstance = await prisma.courseInstance.create({
+  const tlInstance = await prisma.courseInstance.create({
     data: {
       courseId: foundationCourses[1].id,
       name: 'מחזור 8',
@@ -329,11 +324,11 @@ const main = async () => {
 
   console.log('Created 5 course instances');
 
-  // ── Gantt Phases (קורס מ"פים מחזור 42) ──
+  // ── Gantt Phases ──
   await prisma.coursePhase.createMany({
     data: [
       {
-        courseInstanceId: mfpInstance.id,
+        courseInstanceId: mgrInstance.id,
         name: 'הגשת מועמדות',
         phaseType: 'CANDIDACY_SUBMISSION',
         startDate: new Date('2026-03-01'),
@@ -341,31 +336,31 @@ const main = async () => {
         sortOrder: 1,
       },
       {
-        courseInstanceId: mfpInstance.id,
-        name: 'מיונים לפיקוד',
+        courseInstanceId: mgrInstance.id,
+        name: 'מיונים',
         phaseType: 'TRYOUTS',
         startDate: new Date('2026-03-20'),
         endDate: new Date('2026-03-25'),
         sortOrder: 2,
       },
       {
-        courseInstanceId: mfpInstance.id,
-        name: 'קורס פיקוד',
+        courseInstanceId: mgrInstance.id,
+        name: 'הכשרה',
         phaseType: 'COMMANDER_COURSE',
         startDate: new Date('2026-04-01'),
         endDate: new Date('2026-04-15'),
         sortOrder: 3,
       },
       {
-        courseInstanceId: mfpInstance.id,
-        name: 'הכנת סגל',
+        courseInstanceId: mgrInstance.id,
+        name: 'הכנת צוות',
         phaseType: 'STAFF_PREP',
         startDate: new Date('2026-04-16'),
         endDate: new Date('2026-04-20'),
         sortOrder: 4,
       },
       {
-        courseInstanceId: mfpInstance.id,
+        courseInstanceId: mgrInstance.id,
         name: 'הקורס',
         phaseType: 'COURSE',
         startDate: new Date('2026-05-01'),
@@ -373,7 +368,7 @@ const main = async () => {
         sortOrder: 5,
       },
       {
-        courseInstanceId: mfpInstance.id,
+        courseInstanceId: mgrInstance.id,
         name: 'שבוע סיכומים',
         phaseType: 'SUMMARY_WEEK',
         startDate: new Date('2026-07-01'),
@@ -383,11 +378,10 @@ const main = async () => {
     ],
   });
 
-  // ── Gantt Phases (קורס רש"צים מחזור 8) ──
   await prisma.coursePhase.createMany({
     data: [
       {
-        courseInstanceId: rashatzInstance.id,
+        courseInstanceId: tlInstance.id,
         name: 'רישום',
         phaseType: 'CANDIDACY_SUBMISSION',
         startDate: new Date('2026-04-01'),
@@ -395,7 +389,7 @@ const main = async () => {
         sortOrder: 1,
       },
       {
-        courseInstanceId: rashatzInstance.id,
+        courseInstanceId: tlInstance.id,
         name: 'הקורס',
         phaseType: 'COURSE',
         startDate: new Date('2026-05-01'),
@@ -403,7 +397,7 @@ const main = async () => {
         sortOrder: 2,
       },
       {
-        courseInstanceId: rashatzInstance.id,
+        courseInstanceId: tlInstance.id,
         name: 'סיכום',
         phaseType: 'SUMMARY_WEEK',
         startDate: new Date('2026-05-16'),
@@ -415,33 +409,33 @@ const main = async () => {
 
   console.log('Created Gantt phases');
 
-  // ── Command Candidacies (sample) ──
+  // ── Candidacies ──
   await prisma.commandCandidacy.createMany({
     data: [
       {
-        courseInstanceId: mfpInstance.id,
+        courseInstanceId: mgrInstance.id,
         candidateId: trainees[0].id,
         submittedById: teamLeaders[0].id,
         status: 'PENDING',
-        motivation: 'חייל מצטיין עם יכולות פיקודיות טבעיות. מוביל את הצוות בצורה יוצאת מן הכלל.',
-        commanderNotes: 'ממליץ בחום. מתאים לתפקיד פיקודי.',
+        motivation: 'בעל יכולות מנהיגות טבעיות. מוביל את הצוות בצורה יוצאת מן הכלל.',
+        commanderNotes: 'ממליץ בחום. מתאים לתפקיד ניהולי.',
       },
       {
-        courseInstanceId: mfpInstance.id,
+        courseInstanceId: mgrInstance.id,
         candidateId: trainees[1].id,
         submittedById: teamLeaders[0].id,
         status: 'COORD_REVIEWED',
-        motivation: 'חיילת בעלת מוטיבציה גבוהה ויכולת למידה מהירה.',
+        motivation: 'בעלת מוטיבציה גבוהה ויכולת למידה מהירה.',
         commanderNotes: 'מומלצת. שיפור משמעותי בחצי שנה אחרונה.',
       },
       {
-        courseInstanceId: mfpInstance.id,
+        courseInstanceId: mgrInstance.id,
         candidateId: trainees[5].id,
         submittedById: teamLeaders[2].id,
         status: 'APPROVED',
-        motivation: 'חייל מוביל בצוות. ביצועים מצוינים במבצעים.',
+        motivation: 'מוביל בצוות. ביצועים מצוינים.',
         commanderNotes: 'מתאים מאוד.',
-        reviewedById: bisCdr.id,
+        reviewedById: admin.id,
         reviewNotes: 'מאושר. ביצועים מצוינים.',
       },
     ],
@@ -449,14 +443,10 @@ const main = async () => {
 
   console.log('Created 3 sample candidacies');
 
-  // ── Course Registrations (sample) ──
+  // ── Registrations ──
   await prisma.courseRegistration.createMany({
     data: [
-      {
-        courseInstanceId: cyberInstance.id,
-        userId: trainees[0].id,
-        status: 'PENDING_COORD',
-      },
+      { courseInstanceId: cyberInstance.id, userId: trainees[0].id, status: 'PENDING_COORD' },
       {
         courseInstanceId: cyberInstance.id,
         userId: trainees[3].id,
@@ -464,7 +454,7 @@ const main = async () => {
         coordApprovedById: coords[0].id,
         coordApprovedAt: new Date(),
         coordPriority: 1,
-        coordNotes: 'עדיפות גבוהה. חייל מתאים.',
+        coordNotes: 'עדיפות גבוהה. מתאים.',
       },
       {
         courseInstanceId: gisInstance.id,
@@ -473,7 +463,7 @@ const main = async () => {
         coordApprovedById: coords[1].id,
         coordApprovedAt: new Date(),
         coordPriority: 1,
-        bisApprovedById: bisCdr.id,
+        bisApprovedById: admin.id,
         bisApprovedAt: new Date(),
         bisNotes: 'מאושר.',
       },
@@ -483,11 +473,7 @@ const main = async () => {
         status: 'REJECTED',
         rejectionReason: 'אין מקום במחזור הנוכחי. נא לנסות שוב במחזור הבא.',
       },
-      {
-        courseInstanceId: gisInstance.id,
-        userId: trainees[2].id,
-        status: 'PENDING_COORD',
-      },
+      { courseInstanceId: gisInstance.id, userId: trainees[2].id, status: 'PENDING_COORD' },
     ],
   });
 
@@ -498,15 +484,15 @@ const main = async () => {
     data: [
       {
         slug: 'tryouts-info',
-        title: 'מידע על מיונים לפיקוד',
-        content: `# מיונים לפיקוד — מה צפוי?\n\n## השלבים\n1. **הגשת מועמדות** — הרש"צ מגיש מועמדות עבור חניכים מתאימים\n2. **סינון ראשוני** — קה"ד ענפי עובר ומתעדף\n3. **אישור** — מפקד הביס מאשר סופית\n4. **מיונים** — שלב המיונים עצמו (3-5 ימים)\n\n## איך להתכונן?\n- כושר גופני — ריצות, שכיבות סמיכה, מתח\n- ידע מקצועי — חזרה על חומר הקורס הבסיסי\n- מנהיגות — תרגול הובלת צוות`,
+        title: 'מידע על המיונים',
+        content: `# מיונים — מה צפוי?\n\n## השלבים\n1. **הגשת מועמדות** — ראש הצוות מגיש מועמדות עבור משתתפים מתאימים\n2. **סינון ראשוני** — הרכז הענפי עובר ומתעדף\n3. **אישור** — מנהל המערכת מאשר סופית\n4. **מיונים** — שלב המיונים עצמו (3-5 ימים)\n\n## איך להתכונן?\n- כושר גופני\n- ידע מקצועי — חזרה על חומר הקורס הבסיסי\n- מנהיגות — תרגול הובלת צוות`,
         sortOrder: 1,
         isPublished: true,
       },
       {
         slug: 'advanced-courses-info',
         title: 'מידע על קורסים מתקדמים',
-        content: `# קורסים מתקדמים\n\n## תהליך הרישום\n1. בחר קורס מהקטלוג\n2. מלא את הטפסים הנדרשים\n3. הבקשה תעבור לאישור קה"ד ענפי\n4. לאחר אישור ענפי — אישור סופי ע"י מפקד הביס\n\n## שעות גמו"ש\nכל קורס מזכה בשעות גמו"ש בהתאם להיקפו.`,
+        content: `# קורסים מתקדמים\n\n## תהליך הרישום\n1. בחר קורס מהקטלוג\n2. מלא את הטפסים הנדרשים\n3. הבקשה תעבור לאישור הרכז הענפי\n4. לאחר אישור ענפי — אישור סופי\n\n## שעות גמו"ש\nכל קורס מזכה בשעות גמו"ש בהתאם להיקפו.`,
         sortOrder: 2,
         isPublished: true,
       },

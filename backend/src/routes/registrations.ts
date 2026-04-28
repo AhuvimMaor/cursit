@@ -4,7 +4,6 @@ import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
 export const registrationRoutes = async (fastify: FastifyInstance) => {
-  // חניך — הגשת רישום
   fastify.post<{ Body: { courseInstanceId: number; formData?: Record<string, unknown> } }>(
     '/advanced',
     { preHandler: [authenticate, requireRole('TRAINEE')] },
@@ -21,7 +20,6 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // חניך — הרישומים שלי
   fastify.get('/mine', { preHandler: [authenticate, requireRole('TRAINEE')] }, async (request) => {
     return prisma.courseRegistration.findMany({
       where: { userId: request.userId },
@@ -32,7 +30,6 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     });
   });
 
-  // קה"ד — רישומים ענפיים
   fastify.get(
     '/branch',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
@@ -52,7 +49,6 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // קה"ד — תיעדוף ואישור
   fastify.patch<{ Params: { id: string }; Body: { coordNotes?: string; coordPriority?: number } }>(
     '/:id/prioritize',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
@@ -70,7 +66,6 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // מפקד ביס — כל הרישומים
   fastify.get('/all', { preHandler: [authenticate, requireRole('BIS_CDR')] }, async () => {
     return prisma.courseRegistration.findMany({
       include: {
@@ -83,7 +78,6 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     });
   });
 
-  // מפקד ביס — אישור סופי
   fastify.patch<{ Params: { id: string }; Body: { bisNotes?: string } }>(
     '/:id/approve-final',
     { preHandler: [authenticate, requireRole('BIS_CDR')] },
@@ -100,7 +94,6 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // דחייה (קה"ד או מפקד ביס)
   fastify.patch<{ Params: { id: string }; Body: { rejectionReason?: string } }>(
     '/:id/reject',
     { preHandler: [authenticate, requireRole('BRANCH_COORD', 'BIS_CDR')] },

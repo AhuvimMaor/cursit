@@ -13,8 +13,8 @@ type ApprovalsProps = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  PENDING_COORD: { label: 'ממתין לקה"ד', color: 'bg-yellow-100 text-yellow-700' },
-  PENDING_BIS: { label: 'ממתין למפקד ביס', color: 'bg-blue-100 text-blue-700' },
+  PENDING_COORD: { label: 'ממתין לרכז ענפי', color: 'bg-yellow-100 text-yellow-700' },
+  PENDING_BIS: { label: 'ממתין לאישור סופי', color: 'bg-blue-100 text-blue-700' },
   APPROVED: { label: 'אושר', color: 'bg-emerald-100 text-emerald-700' },
   REJECTED: { label: 'נדחה', color: 'bg-red-100 text-red-700' },
 };
@@ -65,7 +65,7 @@ export const Approvals = ({ user }: ApprovalsProps) => {
               <thead>
                 <tr className='border-b border-border bg-muted/30'>
                   <th className='px-6 py-3 text-right text-xs font-medium uppercase text-muted-foreground'>
-                    חניך
+                    משתתף
                   </th>
                   <th className='px-6 py-3 text-right text-xs font-medium uppercase text-muted-foreground'>
                     קורס

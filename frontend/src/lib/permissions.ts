@@ -18,6 +18,7 @@ const ROLE_PAGES: Record<Role, Page[]> = {
 
 export const getAllowedPages = (role: Role): Page[] => ROLE_PAGES[role];
 
-export const canAccess = (role: Role, page: Page): boolean => ROLE_PAGES[role].includes(page);
+export const canAccess = (role: Role, page: Page): boolean =>
+  ROLE_PAGES[role]?.includes(page) ?? false;
 
-export const getDefaultPage = (role: Role): Page => ROLE_PAGES[role][0];
+export const getDefaultPage = (role: Role): Page => ROLE_PAGES[role]?.[0] ?? 'dashboard';

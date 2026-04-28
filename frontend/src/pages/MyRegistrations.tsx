@@ -7,12 +7,12 @@ import { api } from '../lib/api';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   PENDING_COORD: {
-    label: 'ממתין לאישור קה"ד',
+    label: 'ממתין לאישור רכז',
     color: 'bg-yellow-100 text-yellow-700',
     icon: <Clock size={14} />,
   },
   PENDING_BIS: {
-    label: 'ממתין לאישור מפקד ביס',
+    label: 'ממתין לאישור סופי',
     color: 'bg-blue-100 text-blue-700',
     icon: <Clock size={14} />,
   },
@@ -75,14 +75,14 @@ export const MyRegistrations = () => {
                     <div
                       className={`h-2 w-2 rounded-full ${r.status === 'PENDING_COORD' ? 'bg-yellow-400' : 'bg-emerald-500'}`}
                     />
-                    <span className='text-xs text-muted-foreground'>קה"ד</span>
+                    <span className='text-xs text-muted-foreground'>רכז</span>
                   </div>
                   <div className='h-px flex-1 bg-border' />
                   <div className='flex items-center gap-1'>
                     <div
                       className={`h-2 w-2 rounded-full ${r.status === 'APPROVED' ? 'bg-emerald-500' : r.status === 'PENDING_BIS' ? 'bg-yellow-400' : 'bg-gray-300'}`}
                     />
-                    <span className='text-xs text-muted-foreground'>מפקד ביס</span>
+                    <span className='text-xs text-muted-foreground'>אישור סופי</span>
                   </div>
                 </div>
 

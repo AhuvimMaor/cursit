@@ -15,7 +15,7 @@ type CandidacyProps = {
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   PENDING: { label: 'ממתין', color: 'bg-yellow-100 text-yellow-700', icon: <Clock size={14} /> },
   COORD_REVIEWED: {
-    label: 'נבדק ע"י קה"ד',
+    label: 'נבדק ע"י רכז',
     color: 'bg-blue-100 text-blue-700',
     icon: <Eye size={14} />,
   },
@@ -41,7 +41,7 @@ export const Candidacy = ({ user }: CandidacyProps) => {
 
   const title =
     user.role === Role.BIS_CDR
-      ? 'כל המועמדויות לפיקוד'
+      ? 'כל המועמדויות'
       : user.role === Role.BRANCH_COORD
         ? 'מועמדויות הענף'
         : 'המועמדויות שהגשתי';

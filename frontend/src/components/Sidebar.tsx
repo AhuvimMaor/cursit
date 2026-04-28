@@ -26,7 +26,7 @@ const NAV_ITEMS: { page: Page; label: string; icon: React.ReactNode }[] = [
   { page: 'dashboard', label: 'לוח בקרה', icon: <LayoutDashboard size={20} /> },
   { page: 'gantt', label: 'גאנט קורסים', icon: <Calendar size={20} /> },
   { page: 'courses', label: 'קטלוג קורסים', icon: <GraduationCap size={20} /> },
-  { page: 'candidacy', label: 'מועמדות לפיקוד', icon: <Users size={20} /> },
+  { page: 'candidacy', label: 'מועמדויות', icon: <Users size={20} /> },
   { page: 'approvals', label: 'אישור רישומים', icon: <CheckSquare size={20} /> },
   { page: 'my-registrations', label: 'הרישומים שלי', icon: <ClipboardList size={20} /> },
   { page: 'info', label: 'מידע', icon: <FileText size={20} /> },
@@ -39,7 +39,7 @@ export const Sidebar = ({ currentPage, onNavigate, user, onLogout }: SidebarProp
     <aside className='fixed right-0 top-0 z-40 flex h-screen w-64 flex-col border-l border-border bg-white'>
       <div className='flex h-16 items-center gap-2.5 border-b border-border px-6'>
         <BookOpen size={24} className='text-primary' />
-        <span className='text-xl font-bold text-foreground'>ביס 60</span>
+        <span className='text-xl font-bold text-foreground'>Coursit</span>
       </div>
 
       <nav className='flex-1 px-3 py-4'>
