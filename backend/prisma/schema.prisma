@@ -7,39 +7,232 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Student {
+// ──────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────
+
+enum UserRole {
+  BIS_CDR        // מפקד ביס — אישור סופי, ניהול מלא
+  BRANCH_COORD   // קה"ד ענפי — תיעדוף ואישור ענפי
+  TEAM_LEADER    // ראש צוות (רש"צ) — הגשת מועמדות לפיקוד
+  TRAINEE        // חניך — רישום לקורסים מתקדמים
+}
+
+enum CourseType {
+  FOUNDATION     // קורס יסוד — הגשת מועמדות לפיקוד
+  ADVANCED       // קורס מתקדם — רישום + שרשרת אישורים
+}
+
+enum CourseInstanceStatus {
+  DRAFT
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum PhaseType {
+  CANDIDACY_SUBMISSION  // הגשת מועמדות לפיקוד
+  TRYOUTS              // מיונים לפיקוד
+  COMMANDER_COURSE     // קורס פיקוד
+  STAFF_PREP           // הכנת סגל
+  COURSE               // הקורס עצמו
+  SUMMARY_WEEK         // שבוע סיכומים
+  OTHER
+}
+
+enum CandidacyStatus {
+  PENDING           // ממתין לבדיקת קה"ד
+  COORD_REVIEWED    // קה"ד עבר, ממתין לאישור מפקד ביס
+  APPROVED          // אושר ע"י מפקד ביס
+  REJECTED          // נדחה
+}
+
+enum RegistrationStatus {
+  PENDING_COORD     // חניך הגיש, ממתין לתיעדוף קה"ד
+  PENDING_BIS       // קה"ד אישר, ממתין לאישור מפקד ביס
+  APPROVED          // אושר סופית
+  REJECTED          // נדחה
+}
+
+// ──────────────────────────────────────────
+// Organizational Structure
+// ──────────────────────────────────────────
+
+model Branch {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(128)
-  email     String   @unique @db.VarChar(256)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  scores Score[]
+  teams Team[]
+  users User[]
 }
 
-model Mission {
+model Team {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(128)
+  branchId  Int
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  uniqueId  String   @unique @db.VarChar(64)
+  name      String   @db.VarChar(128)
+  role      UserRole
+  teamId    Int?
+  team      Team?    @relation(fields: [teamId], references: [id])
+  branchId  Int?
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  candidaciesAsCandidate CommandCandidacy[] @relation("CandidateUser")
+  candidaciesAsSubmitter CommandCandidacy[] @relation("SubmitterUser")
+  candidacyReviews       CommandCandidacy[] @relation("ReviewerUser")
+  registrations          CourseRegistration[] @relation("RegistrantUser")
+  coordApprovals         CourseRegistration[] @relation("CoordApprover")
+  bisApprovals           CourseRegistration[] @relation("BisApprover")
+}
+
+// ──────────────────────────────────────────
+// Course Catalog & Gantt
+// ──────────────────────────────────────────
+
+model Course {
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(256)
+  description  String     @db.Text
+  type         CourseType
+  requirements String?    @db.Text
+  gmushHours   Int?
+  location     String?    @db.VarChar(256)
+  isPublished  Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  instances    CourseInstance[]
+  formTemplates FormTemplate[]
+}
+
+model CourseInstance {
+  id        Int                  @id @default(autoincrement())
+  courseId  Int
+  course    Course               @relation(fields: [courseId], references: [id])
+  name      String               @db.VarChar(128)
+  startDate DateTime
+  endDate   DateTime
+  status    CourseInstanceStatus @default(DRAFT)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  phases       CoursePhase[]
+  candidacies  CommandCandidacy[]
+  registrations CourseRegistration[]
+}
+
+model CoursePhase {
+  id               Int           @id @default(autoincrement())
+  courseInstanceId  Int
+  courseInstance    CourseInstance @relation(fields: [courseInstanceId], references: [id], onDelete: Cascade)
+  name             String        @db.VarChar(128)
+  phaseType        PhaseType
+  startDate        DateTime
+  endDate          DateTime
+  description      String?       @db.Text
+  sortOrder        Int           @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+// ──────────────────────────────────────────
+// Foundation: Command Candidacy
+// ──────────────────────────────────────────
+
+model CommandCandidacy {
+  id               Int             @id @default(autoincrement())
+  courseInstanceId  Int
+  courseInstance    CourseInstance   @relation(fields: [courseInstanceId], references: [id])
+  candidateId      Int
+  candidate        User            @relation("CandidateUser", fields: [candidateId], references: [id])
+  submittedById    Int
+  submittedBy      User            @relation("SubmitterUser", fields: [submittedById], references: [id])
+  status           CandidacyStatus @default(PENDING)
+  motivation       String?         @db.Text
+  commanderNotes   String?         @db.Text
+  formData         Json?
+  reviewedById     Int?
+  reviewedBy       User?           @relation("ReviewerUser", fields: [reviewedById], references: [id])
+  reviewNotes      String?         @db.Text
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([courseInstanceId, candidateId])
+}
+
+// ──────────────────────────────────────────
+// Advanced: Course Registration
+// ──────────────────────────────────────────
+
+model CourseRegistration {
+  id               Int                @id @default(autoincrement())
+  courseInstanceId  Int
+  courseInstance    CourseInstance      @relation(fields: [courseInstanceId], references: [id])
+  userId           Int
+  user             User               @relation("RegistrantUser", fields: [userId], references: [id])
+  status           RegistrationStatus @default(PENDING_COORD)
+  formData         Json?
+
+  // קה"ד approval
+  coordApprovedById Int?
+  coordApprovedBy   User?     @relation("CoordApprover", fields: [coordApprovedById], references: [id])
+  coordApprovedAt   DateTime?
+  coordNotes        String?   @db.Text
+  coordPriority     Int?      // תיעדוף ענפי
+
+  // מפקד ביס approval
+  bisApprovedById   Int?
+  bisApprovedBy     User?     @relation("BisApprover", fields: [bisApprovedById], references: [id])
+  bisApprovedAt     DateTime?
+  bisNotes          String?   @db.Text
+
+  // Rejection (any stage)
+  rejectionReason   String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseInstanceId, userId])
+}
+
+// ──────────────────────────────────────────
+// Forms & Info
+// ──────────────────────────────────────────
+
+model FormTemplate {
+  id         Int      @id @default(autoincrement())
+  courseId   Int
+  course     Course   @relation(fields: [courseId], references: [id])
+  name       String   @db.VarChar(128)
+  fields     Json
+  isRequired Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model InfoPage {
   id          Int      @id @default(autoincrement())
+  slug        String   @unique @db.VarChar(128)
   title       String   @db.VarChar(256)
-  description String   @db.Text
-  maxScore    Int
+  content     String   @db.Text
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  scores Score[]
-}
-
-model Score {
-  id        Int      @id @default(autoincrement())
-  score     Int
-  comment   String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  studentId Int
-  student   Student @relation(fields: [studentId], references: [id])
-
-  missionId Int
-  mission   Mission @relation(fields: [missionId], references: [id])
-
-  @@unique([studentId, missionId])
 }
