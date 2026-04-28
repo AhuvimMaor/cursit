@@ -17,6 +17,8 @@
     "prisma:reset": "npx prisma migrate reset --force",
     "prisma:studio": "npx prisma studio",
     "prisma:deploy": "npx prisma migrate deploy",
+    "seed:dev": "npx tsx src/scripts/seed/dev",
+    "seed-reset": "npm run prisma:reset && npm run seed:dev",
     "clean": "rm -rf dist && rm -f tsconfig.tsbuildinfo"
   },
   "lint-staged": {

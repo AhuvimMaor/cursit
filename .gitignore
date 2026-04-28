@@ -42,3 +42,4 @@ pnpm-debug.log*
 lerna-debug.log*
 .a5c/
 .serena/
+.playwright-mcp/
