@@ -2,143 +2,518 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const students = [
-  { name: 'נועה כהן', email: 'noa@cursit.dev' },
-  { name: 'יונתן לוי', email: 'yonatan@cursit.dev' },
-  { name: 'מאיה אברהם', email: 'maya@cursit.dev' },
-  { name: 'עידו מזרחי', email: 'ido@cursit.dev' },
-  { name: 'שירה גולן', email: 'shira@cursit.dev' },
-  { name: 'אורי דוד', email: 'ori@cursit.dev' },
-  { name: 'תמר רוזנברג', email: 'tamar@cursit.dev' },
-  { name: 'דניאל פרץ', email: 'daniel@cursit.dev' },
-];
-
-const missions = [
-  {
-    title: 'HTML & CSS Basics',
-    description: 'Build a personal portfolio page using semantic HTML and CSS flexbox/grid',
-    maxScore: 100,
-  },
-  {
-    title: 'JavaScript Fundamentals',
-    description: 'Implement a todo list with DOM manipulation, event handling, and local storage',
-    maxScore: 100,
-  },
-  {
-    title: 'React Components',
-    description: 'Create a weather dashboard with reusable components, props, and state management',
-    maxScore: 100,
-  },
-  {
-    title: 'TypeScript Migration',
-    description: 'Convert an existing JavaScript project to TypeScript with strict mode enabled',
-    maxScore: 100,
-  },
-  {
-    title: 'REST API Design',
-    description: 'Design and implement a RESTful API for a bookstore with CRUD operations',
-    maxScore: 100,
-  },
-  {
-    title: 'Database Modeling',
-    description: 'Design a normalized database schema for an e-commerce platform with Prisma',
-    maxScore: 100,
-  },
-  {
-    title: 'Authentication & Auth',
-    description: 'Implement JWT-based authentication with role-based access control',
-    maxScore: 100,
-  },
-  {
-    title: 'Final Project',
-    description: 'Full-stack application with CI/CD pipeline, testing, and deployment',
-    maxScore: 200,
-  },
-];
-
-const scoreData = [
-  // noa - strong student
-  { studentIdx: 0, missionIdx: 0, score: 95, comment: 'עבודה מצוינת, שימוש נכון ב-grid' },
-  { studentIdx: 0, missionIdx: 1, score: 88, comment: 'חסר error handling בכמה מקומות' },
-  { studentIdx: 0, missionIdx: 2, score: 92, comment: null },
-  { studentIdx: 0, missionIdx: 3, score: 90, comment: 'strict mode מלא, יפה מאוד' },
-  { studentIdx: 0, missionIdx: 4, score: 85, comment: null },
-  // yonatan - average
-  { studentIdx: 1, missionIdx: 0, score: 78, comment: null },
-  { studentIdx: 1, missionIdx: 1, score: 72, comment: 'צריך לשפר את הקוד הנקי' },
-  { studentIdx: 1, missionIdx: 2, score: 80, comment: null },
-  { studentIdx: 1, missionIdx: 3, score: 65, comment: 'הרבה any types, צריך לתקן' },
-  // maya - excellent
-  { studentIdx: 2, missionIdx: 0, score: 100, comment: 'מושלם!' },
-  { studentIdx: 2, missionIdx: 1, score: 97, comment: null },
-  { studentIdx: 2, missionIdx: 2, score: 95, comment: 'שימוש מעולה ב-custom hooks' },
-  { studentIdx: 2, missionIdx: 3, score: 98, comment: null },
-  { studentIdx: 2, missionIdx: 4, score: 94, comment: null },
-  { studentIdx: 2, missionIdx: 5, score: 92, comment: 'סכמה נורמלית ומסודרת' },
-  // ido - struggling
-  { studentIdx: 3, missionIdx: 0, score: 60, comment: 'צריך לחזור על flexbox' },
-  { studentIdx: 3, missionIdx: 1, score: 55, comment: 'הגשה מאוחרת, חסרים פיצ׳רים' },
-  { studentIdx: 3, missionIdx: 2, score: 62, comment: null },
-  // shira - good
-  { studentIdx: 4, missionIdx: 0, score: 85, comment: null },
-  { studentIdx: 4, missionIdx: 1, score: 82, comment: null },
-  { studentIdx: 4, missionIdx: 2, score: 88, comment: 'דיזיין יפה' },
-  { studentIdx: 4, missionIdx: 3, score: 79, comment: null },
-  { studentIdx: 4, missionIdx: 4, score: 83, comment: null },
-  { studentIdx: 4, missionIdx: 5, score: 86, comment: null },
-  { studentIdx: 4, missionIdx: 6, score: 90, comment: 'אימפלמנטציה נקייה של JWT' },
-  // ori - improving
-  { studentIdx: 5, missionIdx: 0, score: 65, comment: null },
-  { studentIdx: 5, missionIdx: 1, score: 70, comment: null },
-  { studentIdx: 5, missionIdx: 2, score: 78, comment: 'שיפור משמעותי!' },
-  { studentIdx: 5, missionIdx: 3, score: 82, comment: null },
-  // tamar - consistent
-  { studentIdx: 6, missionIdx: 0, score: 87, comment: null },
-  { studentIdx: 6, missionIdx: 1, score: 85, comment: null },
-  { studentIdx: 6, missionIdx: 2, score: 89, comment: null },
-  { studentIdx: 6, missionIdx: 3, score: 86, comment: null },
-  { studentIdx: 6, missionIdx: 4, score: 88, comment: null },
-  // daniel - late starter
-  { studentIdx: 7, missionIdx: 0, score: 70, comment: 'הצטרף מאוחר לקורס' },
-  { studentIdx: 7, missionIdx: 1, score: 75, comment: null },
-];
-
 const main = async () => {
-  console.log('Seeding dev data...');
+  console.log('Seeding ביס 60 dev data...');
 
-  const createdStudents = await Promise.all(
-    students.map((s) =>
-      prisma.student.upsert({
-        where: { email: s.email },
-        update: s,
-        create: s,
-      }),
-    ),
+  // ── Branches ──
+  const branches = await Promise.all([
+    prisma.branch.create({ data: { name: 'ענף טכנולוגיה' } }),
+    prisma.branch.create({ data: { name: 'ענף לוגיסטיקה' } }),
+    prisma.branch.create({ data: { name: 'ענף תקשוב' } }),
+  ]);
+  console.log(`Created ${branches.length} branches`);
+
+  // ── Teams ──
+  const teams = await Promise.all([
+    prisma.team.create({ data: { name: 'צוות אלפא', branchId: branches[0].id } }),
+    prisma.team.create({ data: { name: 'צוות בראבו', branchId: branches[0].id } }),
+    prisma.team.create({ data: { name: 'צוות גאמא', branchId: branches[1].id } }),
+    prisma.team.create({ data: { name: 'צוות דלתא', branchId: branches[1].id } }),
+    prisma.team.create({ data: { name: 'צוות הדס', branchId: branches[2].id } }),
+  ]);
+  console.log(`Created ${teams.length} teams`);
+
+  // ── Users ──
+  const bisCdr = await prisma.user.create({
+    data: { uniqueId: '1000000', name: 'סא"ל דוד כהן', role: 'BIS_CDR' },
+  });
+
+  const coords = await Promise.all([
+    prisma.user.create({
+      data: {
+        uniqueId: '2000001',
+        name: 'רס"ן שרה לוי',
+        role: 'BRANCH_COORD',
+        branchId: branches[0].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '2000002',
+        name: 'רס"ן יוסי אברהם',
+        role: 'BRANCH_COORD',
+        branchId: branches[1].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '2000003',
+        name: 'רס"ן מיכל דוד',
+        role: 'BRANCH_COORD',
+        branchId: branches[2].id,
+      },
+    }),
+  ]);
+
+  const teamLeaders = await Promise.all([
+    prisma.user.create({
+      data: {
+        uniqueId: '3000001',
+        name: 'סמ"ר נועה מזרחי',
+        role: 'TEAM_LEADER',
+        teamId: teams[0].id,
+        branchId: branches[0].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '3000002',
+        name: 'סמ"ר אורי גולן',
+        role: 'TEAM_LEADER',
+        teamId: teams[1].id,
+        branchId: branches[0].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '3000003',
+        name: 'סמ"ר תמר פרץ',
+        role: 'TEAM_LEADER',
+        teamId: teams[2].id,
+        branchId: branches[1].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '3000004',
+        name: 'סמ"ר דניאל רוזנברג',
+        role: 'TEAM_LEADER',
+        teamId: teams[3].id,
+        branchId: branches[1].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '3000005',
+        name: 'סמ"ר שירה כהן',
+        role: 'TEAM_LEADER',
+        teamId: teams[4].id,
+        branchId: branches[2].id,
+      },
+    }),
+  ]);
+
+  const trainees = await Promise.all([
+    // צוות אלפא
+    prisma.user.create({
+      data: {
+        uniqueId: '4000001',
+        name: 'טוראי יונתן לוי',
+        role: 'TRAINEE',
+        teamId: teams[0].id,
+        branchId: branches[0].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '4000002',
+        name: 'טוראי מאיה אברהם',
+        role: 'TRAINEE',
+        teamId: teams[0].id,
+        branchId: branches[0].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '4000003',
+        name: 'טוראי עידו כהן',
+        role: 'TRAINEE',
+        teamId: teams[0].id,
+        branchId: branches[0].id,
+      },
+    }),
+    // צוות בראבו
+    prisma.user.create({
+      data: {
+        uniqueId: '4000004',
+        name: 'טוראי רונה דוד',
+        role: 'TRAINEE',
+        teamId: teams[1].id,
+        branchId: branches[0].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '4000005',
+        name: 'טוראי אלון פרידמן',
+        role: 'TRAINEE',
+        teamId: teams[1].id,
+        branchId: branches[0].id,
+      },
+    }),
+    // צוות גאמא
+    prisma.user.create({
+      data: {
+        uniqueId: '4000006',
+        name: 'טוראי שקד מזרחי',
+        role: 'TRAINEE',
+        teamId: teams[2].id,
+        branchId: branches[1].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '4000007',
+        name: 'טוראי ליאור גולן',
+        role: 'TRAINEE',
+        teamId: teams[2].id,
+        branchId: branches[1].id,
+      },
+    }),
+    // צוות דלתא
+    prisma.user.create({
+      data: {
+        uniqueId: '4000008',
+        name: 'טוראי נגה רוזנברג',
+        role: 'TRAINEE',
+        teamId: teams[3].id,
+        branchId: branches[1].id,
+      },
+    }),
+    // צוות הדס
+    prisma.user.create({
+      data: {
+        uniqueId: '4000009',
+        name: 'טוראי תומר שמעוני',
+        role: 'TRAINEE',
+        teamId: teams[4].id,
+        branchId: branches[2].id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        uniqueId: '4000010',
+        name: 'טוראי הילה ברקוביץ',
+        role: 'TRAINEE',
+        teamId: teams[4].id,
+        branchId: branches[2].id,
+      },
+    }),
+  ]);
+
+  console.log(
+    `Created users: 1 BIS_CDR, ${coords.length} BRANCH_COORD, ${teamLeaders.length} TEAM_LEADER, ${trainees.length} TRAINEE`,
   );
-  console.log(`Created ${createdStudents.length} students`);
 
-  const createdMissions = await Promise.all(
-    missions.map((m, idx) =>
-      prisma.mission.upsert({
-        where: { id: idx + 1 },
-        update: m,
-        create: m,
-      }),
-    ),
+  // ── Courses ──
+  const foundationCourses = await Promise.all([
+    prisma.course.create({
+      data: {
+        name: 'קורס מ"פים',
+        description: 'קורס הכשרת מפקדי פלוגות. כולל מיונים, הכשרת פיקוד, והקורס עצמו.',
+        type: 'FOUNDATION',
+        location: 'בסיס הדרכה מרכזי',
+        isPublished: true,
+      },
+    }),
+    prisma.course.create({
+      data: {
+        name: 'קורס רש"צים',
+        description: 'קורס הכשרת ראשי צוותים. תפקיד פיקודי ראשון.',
+        type: 'FOUNDATION',
+        location: 'בסיס הדרכה מרכזי',
+        isPublished: true,
+      },
+    }),
+  ]);
+
+  const advancedCourses = await Promise.all([
+    prisma.course.create({
+      data: {
+        name: 'קורס סייבר מתקדם',
+        description: 'הכשרה מתקדמת בעולם הסייבר. כולל תרגול מעשי והתמודדות עם תרחישים אמיתיים.',
+        type: 'ADVANCED',
+        requirements: 'סיום קורס סייבר בסיסי, ניסיון של 6 חודשים לפחות',
+        gmushHours: 40,
+        location: 'מרכז סייבר',
+        isPublished: true,
+      },
+    }),
+    prisma.course.create({
+      data: {
+        name: 'קורס GIS מתקדם',
+        description: 'הכשרה במערכות מידע גיאוגרפי. עבודה עם כלים מתקדמים ואנליזה מרחבית.',
+        type: 'ADVANCED',
+        requirements: 'היכרות בסיסית עם מערכות GIS',
+        gmushHours: 32,
+        location: 'חדר הדרכה 3',
+        isPublished: true,
+      },
+    }),
+    prisma.course.create({
+      data: {
+        name: 'קורס Python לאנליסטים',
+        description: 'תכנות Python לצרכי אנליזה ועיבוד נתונים. כולל Pandas, NumPy ותרגול מעשי.',
+        type: 'ADVANCED',
+        requirements: 'אין דרישות מקדימות',
+        gmushHours: 24,
+        location: 'מעבדת מחשבים',
+        isPublished: true,
+      },
+    }),
+    prisma.course.create({
+      data: {
+        name: 'קורס ניהול פרויקטים',
+        description: 'מתודולוגיות ניהול פרויקטים, Agile ו-Scrum. מותאם לעולם הצבאי.',
+        type: 'ADVANCED',
+        gmushHours: 16,
+        isPublished: true,
+      },
+    }),
+  ]);
+
+  console.log(
+    `Created ${foundationCourses.length} foundation + ${advancedCourses.length} advanced courses`,
   );
-  console.log(`Created ${createdMissions.length} missions`);
 
-  for (const s of scoreData) {
-    const studentId = createdStudents[s.studentIdx].id;
-    const missionId = createdMissions[s.missionIdx].id;
-    await prisma.score.upsert({
-      where: { studentId_missionId: { studentId, missionId } },
-      update: { score: s.score, comment: s.comment },
-      create: { studentId, missionId, score: s.score, comment: s.comment },
-    });
-  }
-  console.log(`Created ${scoreData.length} scores`);
+  // ── Course Instances ──
+  const mfpInstance = await prisma.courseInstance.create({
+    data: {
+      courseId: foundationCourses[0].id,
+      name: 'מחזור 42',
+      startDate: new Date('2026-03-01'),
+      endDate: new Date('2026-07-07'),
+      status: 'OPEN',
+    },
+  });
 
+  const rashatzInstance = await prisma.courseInstance.create({
+    data: {
+      courseId: foundationCourses[1].id,
+      name: 'מחזור 8',
+      startDate: new Date('2026-04-01'),
+      endDate: new Date('2026-05-18'),
+      status: 'OPEN',
+    },
+  });
+
+  const cyberInstance = await prisma.courseInstance.create({
+    data: {
+      courseId: advancedCourses[0].id,
+      name: 'מחזור קיץ 2026',
+      startDate: new Date('2026-06-01'),
+      endDate: new Date('2026-07-15'),
+      status: 'OPEN',
+    },
+  });
+
+  const gisInstance = await prisma.courseInstance.create({
+    data: {
+      courseId: advancedCourses[1].id,
+      name: 'מחזור 3',
+      startDate: new Date('2026-05-15'),
+      endDate: new Date('2026-06-20'),
+      status: 'OPEN',
+    },
+  });
+
+  const pythonInstance = await prisma.courseInstance.create({
+    data: {
+      courseId: advancedCourses[2].id,
+      name: 'מחזור 5',
+      startDate: new Date('2026-07-01'),
+      endDate: new Date('2026-07-25'),
+      status: 'OPEN',
+    },
+  });
+
+  console.log('Created 5 course instances');
+
+  // ── Gantt Phases (קורס מ"פים מחזור 42) ──
+  await prisma.coursePhase.createMany({
+    data: [
+      {
+        courseInstanceId: mfpInstance.id,
+        name: 'הגשת מועמדות',
+        phaseType: 'CANDIDACY_SUBMISSION',
+        startDate: new Date('2026-03-01'),
+        endDate: new Date('2026-03-15'),
+        sortOrder: 1,
+      },
+      {
+        courseInstanceId: mfpInstance.id,
+        name: 'מיונים לפיקוד',
+        phaseType: 'TRYOUTS',
+        startDate: new Date('2026-03-20'),
+        endDate: new Date('2026-03-25'),
+        sortOrder: 2,
+      },
+      {
+        courseInstanceId: mfpInstance.id,
+        name: 'קורס פיקוד',
+        phaseType: 'COMMANDER_COURSE',
+        startDate: new Date('2026-04-01'),
+        endDate: new Date('2026-04-15'),
+        sortOrder: 3,
+      },
+      {
+        courseInstanceId: mfpInstance.id,
+        name: 'הכנת סגל',
+        phaseType: 'STAFF_PREP',
+        startDate: new Date('2026-04-16'),
+        endDate: new Date('2026-04-20'),
+        sortOrder: 4,
+      },
+      {
+        courseInstanceId: mfpInstance.id,
+        name: 'הקורס',
+        phaseType: 'COURSE',
+        startDate: new Date('2026-05-01'),
+        endDate: new Date('2026-06-30'),
+        sortOrder: 5,
+      },
+      {
+        courseInstanceId: mfpInstance.id,
+        name: 'שבוע סיכומים',
+        phaseType: 'SUMMARY_WEEK',
+        startDate: new Date('2026-07-01'),
+        endDate: new Date('2026-07-07'),
+        sortOrder: 6,
+      },
+    ],
+  });
+
+  // ── Gantt Phases (קורס רש"צים מחזור 8) ──
+  await prisma.coursePhase.createMany({
+    data: [
+      {
+        courseInstanceId: rashatzInstance.id,
+        name: 'רישום',
+        phaseType: 'CANDIDACY_SUBMISSION',
+        startDate: new Date('2026-04-01'),
+        endDate: new Date('2026-04-20'),
+        sortOrder: 1,
+      },
+      {
+        courseInstanceId: rashatzInstance.id,
+        name: 'הקורס',
+        phaseType: 'COURSE',
+        startDate: new Date('2026-05-01'),
+        endDate: new Date('2026-05-15'),
+        sortOrder: 2,
+      },
+      {
+        courseInstanceId: rashatzInstance.id,
+        name: 'סיכום',
+        phaseType: 'SUMMARY_WEEK',
+        startDate: new Date('2026-05-16'),
+        endDate: new Date('2026-05-18'),
+        sortOrder: 3,
+      },
+    ],
+  });
+
+  console.log('Created Gantt phases');
+
+  // ── Command Candidacies (sample) ──
+  await prisma.commandCandidacy.createMany({
+    data: [
+      {
+        courseInstanceId: mfpInstance.id,
+        candidateId: trainees[0].id,
+        submittedById: teamLeaders[0].id,
+        status: 'PENDING',
+        motivation: 'חייל מצטיין עם יכולות פיקודיות טבעיות. מוביל את הצוות בצורה יוצאת מן הכלל.',
+        commanderNotes: 'ממליץ בחום. מתאים לתפקיד פיקודי.',
+      },
+      {
+        courseInstanceId: mfpInstance.id,
+        candidateId: trainees[1].id,
+        submittedById: teamLeaders[0].id,
+        status: 'COORD_REVIEWED',
+        motivation: 'חיילת בעלת מוטיבציה גבוהה ויכולת למידה מהירה.',
+        commanderNotes: 'מומלצת. שיפור משמעותי בחצי שנה אחרונה.',
+      },
+      {
+        courseInstanceId: mfpInstance.id,
+        candidateId: trainees[5].id,
+        submittedById: teamLeaders[2].id,
+        status: 'APPROVED',
+        motivation: 'חייל מוביל בצוות. ביצועים מצוינים במבצעים.',
+        commanderNotes: 'מתאים מאוד.',
+        reviewedById: bisCdr.id,
+        reviewNotes: 'מאושר. ביצועים מצוינים.',
+      },
+    ],
+  });
+
+  console.log('Created 3 sample candidacies');
+
+  // ── Course Registrations (sample) ──
+  await prisma.courseRegistration.createMany({
+    data: [
+      {
+        courseInstanceId: cyberInstance.id,
+        userId: trainees[0].id,
+        status: 'PENDING_COORD',
+      },
+      {
+        courseInstanceId: cyberInstance.id,
+        userId: trainees[3].id,
+        status: 'PENDING_BIS',
+        coordApprovedById: coords[0].id,
+        coordApprovedAt: new Date(),
+        coordPriority: 1,
+        coordNotes: 'עדיפות גבוהה. חייל מתאים.',
+      },
+      {
+        courseInstanceId: gisInstance.id,
+        userId: trainees[5].id,
+        status: 'APPROVED',
+        coordApprovedById: coords[1].id,
+        coordApprovedAt: new Date(),
+        coordPriority: 1,
+        bisApprovedById: bisCdr.id,
+        bisApprovedAt: new Date(),
+        bisNotes: 'מאושר.',
+      },
+      {
+        courseInstanceId: pythonInstance.id,
+        userId: trainees[8].id,
+        status: 'REJECTED',
+        rejectionReason: 'אין מקום במחזור הנוכחי. נא לנסות שוב במחזור הבא.',
+      },
+      {
+        courseInstanceId: gisInstance.id,
+        userId: trainees[2].id,
+        status: 'PENDING_COORD',
+      },
+    ],
+  });
+
+  console.log('Created 5 sample registrations');
+
+  // ── Info Pages ──
+  await prisma.infoPage.createMany({
+    data: [
+      {
+        slug: 'tryouts-info',
+        title: 'מידע על מיונים לפיקוד',
+        content: `# מיונים לפיקוד — מה צפוי?\n\n## השלבים\n1. **הגשת מועמדות** — הרש"צ מגיש מועמדות עבור חניכים מתאימים\n2. **סינון ראשוני** — קה"ד ענפי עובר ומתעדף\n3. **אישור** — מפקד הביס מאשר סופית\n4. **מיונים** — שלב המיונים עצמו (3-5 ימים)\n\n## איך להתכונן?\n- כושר גופני — ריצות, שכיבות סמיכה, מתח\n- ידע מקצועי — חזרה על חומר הקורס הבסיסי\n- מנהיגות — תרגול הובלת צוות`,
+        sortOrder: 1,
+        isPublished: true,
+      },
+      {
+        slug: 'advanced-courses-info',
+        title: 'מידע על קורסים מתקדמים',
+        content: `# קורסים מתקדמים\n\n## תהליך הרישום\n1. בחר קורס מהקטלוג\n2. מלא את הטפסים הנדרשים\n3. הבקשה תעבור לאישור קה"ד ענפי\n4. לאחר אישור ענפי — אישור סופי ע"י מפקד הביס\n\n## שעות גמו"ש\nכל קורס מזכה בשעות גמו"ש בהתאם להיקפו.`,
+        sortOrder: 2,
+        isPublished: true,
+      },
+    ],
+  });
+
+  console.log('Created 2 info pages');
   console.log('Seed complete!');
 };
 

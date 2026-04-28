@@ -1,13 +1,21 @@
 import type { FastifyInstance } from 'fastify';
 
+import { authRoutes } from './auth.js';
+import { branchRoutes } from './branches.js';
+import { candidacyRoutes } from './candidacy.js';
+import { courseRoutes } from './courses.js';
+import { ganttRoutes } from './gantt.js';
 import { healthRoutes } from './health.js';
-import { missionRoutes } from './missions.js';
-import { scoreRoutes } from './scores.js';
-import { studentRoutes } from './students.js';
+import { infoRoutes } from './info.js';
+import { registrationRoutes } from './registrations.js';
 
 export const registerRoutes = (fastify: FastifyInstance) => {
   fastify.register(healthRoutes, { prefix: '/api/health' });
-  fastify.register(studentRoutes, { prefix: '/api/students' });
-  fastify.register(missionRoutes, { prefix: '/api/missions' });
-  fastify.register(scoreRoutes, { prefix: '/api/scores' });
+  fastify.register(authRoutes, { prefix: '/api/auth' });
+  fastify.register(branchRoutes, { prefix: '/api/branches' });
+  fastify.register(courseRoutes, { prefix: '/api/courses' });
+  fastify.register(ganttRoutes, { prefix: '/api/gantt' });
+  fastify.register(candidacyRoutes, { prefix: '/api/candidacy' });
+  fastify.register(registrationRoutes, { prefix: '/api/registrations' });
+  fastify.register(infoRoutes, { prefix: '/api/info' });
 };

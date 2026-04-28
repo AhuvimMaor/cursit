@@ -2,10 +2,13 @@ import type { Role } from './roles';
 
 export type AuthUser = {
   id: number;
+  uniqueId: string;
   name: string;
-  email: string;
   role: Role;
-  avatar?: string;
+  teamId?: number | null;
+  branchId?: number | null;
+  team?: { id: number; name: string } | null;
+  branch?: { id: number; name: string } | null;
 };
 
 const AUTH_KEY = 'cursit_user';
