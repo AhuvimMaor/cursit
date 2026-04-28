@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cursit
+      POSTGRES_PASSWORD: cursit123
+      POSTGRES_DB: cursit
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cursit']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  db-viewer:
+    image: dbgate/dbgate:7.0.6-alpine
+    ports:
+      - 8081:3000
+    environment:
+      CONNECTIONS: con1
+      LABEL_con1: Cursit PostgreSQL
+      SERVER_con1: db
+      USER_con1: cursit
+      PASSWORD_con1: cursit123
+      PORT_con1: 5432
+      ENGINE_con1: postgres@dbgate-plugin-postgres
+      DATABASE_con1: cursit
+      SINGLE_CONNECTION: con1
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

@@ -1,41 +1,28 @@
 {
   "name": "cursit",
   "private": true,
-  "version": "0.0.1",
-  "type": "module",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    "dev": "vite --port 3000",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "lint": "eslint",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "check": "prettier --write . && eslint --fix",
-    "typecheck": "tsc --noEmit",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,json,css,md,html}": "prettier --write",
-    "*.{ts,tsx}": "eslint --fix"
-  },
-  "dependencies": {
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "prepare": "husky",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "npm run format --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"node scripts/wait-for-port.mjs 8000 && npm run dev --workspace=frontend\"",
+    "prisma:generate": "npm run prisma:generate --workspace=backend",
+    "prisma:migrate": "npm run prisma:migrate --workspace=backend",
+    "prisma:studio": "npm run prisma:studio --workspace=backend",
+    "docker:db": "docker compose up -d",
+    "docker:local": "docker compose -f docker-compose.local.yml up --build",
+    "docker:local:down": "docker compose -f docker-compose.local.yml down"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@tailwindcss/vite": "^4.2.4",
-    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
-    "@types/node": "^25.6.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react-swc": "^4.3.0",
-    "eslint": "^10.2.1",
-    "globals": "^17.5.0",
+    "concurrently": "^9.2.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
-    "prettier": "^3.8.3",
-    "tailwindcss": "^4.2.4",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.1"
+    "lint-staged": "^16.4.0"
   }
 }

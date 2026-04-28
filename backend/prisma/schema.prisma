@@ -1,0 +1,45 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Student {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(128)
+  email     String   @unique @db.VarChar(256)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scores Score[]
+}
+
+model Mission {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(256)
+  description String   @db.Text
+  maxScore    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  scores Score[]
+}
+
+model Score {
+  id        Int      @id @default(autoincrement())
+  score     Int
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentId Int
+  student   Student @relation(fields: [studentId], references: [id])
+
+  missionId Int
+  mission   Mission @relation(fields: [missionId], references: [id])
+
+  @@unique([studentId, missionId])
+}

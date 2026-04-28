@@ -8,10 +8,16 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(import.meta.dirname, './src'),
+      '@shared': resolve(import.meta.dirname, '../shared/src'),
     },
   },
   server: {
     port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+      },
+    },
   },
   build: {
     target: 'chrome98',

@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  lint:
+  lint-shared:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +21,9 @@ jobs:
           restore-keys: ${{ runner.OS }}-node-
       - run: npm i
       - run: npm run lint
+        working-directory: ./shared
 
-  typecheck:
+  lint-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,9 +36,10 @@ jobs:
           key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.OS }}-node-
       - run: npm i
-      - run: npm run typecheck
+      - run: npm run lint
+        working-directory: ./backend
 
-  build:
+  lint-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,4 +52,23 @@ jobs:
           key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.OS }}-node-
       - run: npm i
+      - run: npm run build --workspace=shared
+      - run: npm run lint
+        working-directory: ./frontend
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.OS }}-node-
+      - run: npm i
+      - run: npm run build --workspace=shared
       - run: npm run build
+        working-directory: ./frontend

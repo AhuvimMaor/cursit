@@ -1,7 +1,7 @@
 //  @ts-check
 
 /** @type {import('prettier').Config} */
-const config = {
+const baseConfig = {
   semi: true,
   singleQuote: true,
   trailingComma: 'all',
@@ -15,4 +15,4 @@ const config = {
   plugins: ['@trivago/prettier-plugin-sort-imports'],
 };
 
-export default config;
+export default baseConfig;
