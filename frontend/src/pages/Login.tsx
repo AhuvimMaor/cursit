@@ -20,19 +20,22 @@ const ROLE_COLORS: Record<Role, string> = {
 
 export const Login = ({ onLogin }: LoginProps) => {
   const fetchUsers = useCallback(() => api.getUsers(), []);
-  const { data: users, loading } = useApi(fetchUsers);
+  const { data: users, loading, error: usersError } = useApi(fetchUsers);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loggingIn, setLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const handleLogin = async (user: AuthUser) => {
     setSelectedId(user.id);
     setLoggingIn(true);
+    setLoginError(null);
     try {
       const fullUser = await api.login(user.uniqueId);
       setTimeout(() => onLogin(fullUser), 400);
     } catch {
       setLoggingIn(false);
       setSelectedId(null);
+      setLoginError('ההתחברות נכשלה. ודא שהשרת רץ והמשתמש קיים במסד הנתונים.');
     }
   };
 
@@ -57,6 +60,28 @@ export const Login = ({ onLogin }: LoginProps) => {
         <div className='rounded-2xl border border-border bg-white p-6 shadow-xl shadow-black/5'>
           <h2 className='mb-1 text-lg font-semibold text-foreground'>התחברות</h2>
           <p className='mb-4 text-sm text-muted-foreground'>בחר משתמש (סביבת פיתוח)</p>
+
+          {usersError && (
+            <div className='mb-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive'>
+              לא ניתן לטעון משתמשים: {usersError}. ודא שהשרת רץ (פורט 8000) וש-Vite מפנה את{' '}
+              <code className='rounded bg-muted px-1'>/api</code>.
+            </div>
+          )}
+
+          {!usersError && users && users.length === 0 && (
+            <div className='mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900'>
+              אין משתמשים במסד הנתונים. מהשורש של הפרויקט הרץ:{' '}
+              <code className='rounded bg-white px-1 text-xs'>
+                npm run seed:dev --workspace=backend
+              </code>
+            </div>
+          )}
+
+          {loginError && (
+            <div className='mb-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive'>
+              {loginError}
+            </div>
+          )}
 
           <div className='max-h-[50vh] space-y-3 overflow-y-auto'>
             {roleGroups.map((role) => {
@@ -115,11 +140,13 @@ export const Login = ({ onLogin }: LoginProps) => {
           </div>
 
           <button
-            disabled={loggingIn}
-            className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-foreground/90 disabled:opacity-50'
+            type='button'
+            disabled
+            title='לא מוטמע בסביבת פיתוח — השתמש בבחירת משתמש למעלה'
+            className='mt-4 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-muted px-4 py-3 text-sm font-medium text-muted-foreground opacity-80'
           >
             <LogIn size={16} />
-            התחברות עם OAuth
+            התחברות עם OAuth (בקרוב)
           </button>
         </div>
       </div>
