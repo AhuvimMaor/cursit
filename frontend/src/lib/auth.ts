@@ -12,12 +12,19 @@ export type AuthUser = {
 };
 
 const AUTH_KEY = 'cursit_user';
+const AUTH_VERSION_KEY = 'cursit_auth_v';
+const CURRENT_AUTH_VERSION = '2';
 
 export const saveUser = (user: AuthUser) => {
   localStorage.setItem(AUTH_KEY, JSON.stringify(user));
 };
 
 export const loadUser = (): AuthUser | null => {
+  if (localStorage.getItem(AUTH_VERSION_KEY) !== CURRENT_AUTH_VERSION) {
+    localStorage.removeItem(AUTH_KEY);
+    localStorage.setItem(AUTH_VERSION_KEY, CURRENT_AUTH_VERSION);
+    return null;
+  }
   const raw = localStorage.getItem(AUTH_KEY);
   if (!raw) return null;
   try {

@@ -54,11 +54,11 @@ export const Login = ({ onLogin }: LoginProps) => {
           <p className='mt-2 text-sm text-muted-foreground'>מערכת ניהול הדרכה וקורסים</p>
         </div>
 
-        <div className='rounded-2xl border border-border bg-white p-8 shadow-xl shadow-black/5'>
+        <div className='rounded-2xl border border-border bg-white p-6 shadow-xl shadow-black/5'>
           <h2 className='mb-1 text-lg font-semibold text-foreground'>התחברות</h2>
-          <p className='mb-6 text-sm text-muted-foreground'>בחר משתמש (סביבת פיתוח)</p>
+          <p className='mb-4 text-sm text-muted-foreground'>בחר משתמש (סביבת פיתוח)</p>
 
-          <div className='space-y-4'>
+          <div className='max-h-[50vh] space-y-3 overflow-y-auto'>
             {roleGroups.map((role) => {
               const roleUsers = users?.filter((u) => u.role === role) ?? [];
               if (roleUsers.length === 0) return null;
@@ -69,14 +69,14 @@ export const Login = ({ onLogin }: LoginProps) => {
                     {HEBREW_ROLES[role]}
                   </p>
                   <div className='space-y-1.5'>
-                    {roleUsers.slice(0, 3).map((user) => {
+                    {roleUsers.slice(0, 2).map((user) => {
                       const isSelected = selectedId === user.id;
                       return (
                         <button
                           key={user.id}
                           onClick={() => handleLogin(user as AuthUser)}
                           disabled={loggingIn}
-                          className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-right transition-all ${
+                          className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-right transition-all ${
                             isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-border hover:border-primary/30 hover:bg-muted/50'
