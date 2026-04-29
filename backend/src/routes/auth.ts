@@ -33,4 +33,11 @@ export const authRoutes = async (fastify: FastifyInstance) => {
       orderBy: { name: 'asc' },
     });
   });
+
+  fastify.get<{ Params: { teamId: string } }>('/team/:teamId/members', async (request) => {
+    return prisma.user.findMany({
+      where: { teamId: Number(request.params.teamId), role: 'TRAINEE', isActive: true },
+      orderBy: { name: 'asc' },
+    });
+  });
 };

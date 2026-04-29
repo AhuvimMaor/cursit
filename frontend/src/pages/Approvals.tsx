@@ -33,17 +33,26 @@ export const Approvals = ({ user }: ApprovalsProps) => {
   const title = user.role === Role.BIS_CDR ? 'אישור רישומים' : 'רישומים ענפיים';
 
   const handlePrioritize = async (id: number) => {
-    await api.prioritizeRegistration(id, { coordPriority: 1 });
+    const priorityStr = prompt('תיעדוף (1 = הכי גבוה):');
+    if (!priorityStr) return;
+    const notes = prompt('הערות (אופציונלי):');
+    await api.prioritizeRegistration(id, {
+      coordPriority: Number(priorityStr),
+      coordNotes: notes ?? undefined,
+    });
     refetch();
   };
 
   const handleApproveFinal = async (id: number) => {
-    await api.approveRegistrationFinal(id);
+    const notes = prompt('הערות (אופציונלי):');
+    await api.approveRegistrationFinal(id, notes ?? undefined);
     refetch();
   };
 
   const handleReject = async (id: number) => {
-    await api.rejectRegistration(id, 'נדחה');
+    const reason = prompt('סיבת דחייה:');
+    if (!reason) return;
+    await api.rejectRegistration(id, reason);
     refetch();
   };
 
@@ -79,6 +88,9 @@ export const Approvals = ({ user }: ApprovalsProps) => {
                   <th className='px-6 py-3 text-center text-xs font-medium uppercase text-muted-foreground'>
                     תיעדוף
                   </th>
+                  <th className='px-6 py-3 text-center text-xs font-medium uppercase text-muted-foreground'>
+                    הערות
+                  </th>
                   <th className='px-6 py-3' />
                 </tr>
               </thead>
@@ -113,15 +125,18 @@ export const Approvals = ({ user }: ApprovalsProps) => {
                       <td className='px-6 py-4 text-center text-sm text-foreground'>
                         {r.coordPriority ?? '—'}
                       </td>
+                      <td className='max-w-[150px] truncate px-6 py-4 text-xs text-muted-foreground'>
+                        {r.coordNotes || r.bisNotes || r.rejectionReason || '—'}
+                      </td>
                       <td className='px-6 py-4'>
-                        <div className='flex gap-1.5 justify-end'>
+                        <div className='flex justify-end gap-1.5'>
                           {canCoordApprove && (
                             <>
                               <button
                                 onClick={() => handlePrioritize(r.id)}
                                 className='rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600'
                               >
-                                אשר
+                                אשר + תעדף
                               </button>
                               <button
                                 onClick={() => handleReject(r.id)}

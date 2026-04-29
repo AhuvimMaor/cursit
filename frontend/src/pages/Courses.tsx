@@ -1,8 +1,9 @@
-import { BookOpen, Clock, MapPin, Star } from 'lucide-react';
-import { useCallback } from 'react';
+import { BookOpen, Check, Clock, Loader2, MapPin, Star } from 'lucide-react';
+import { useCallback, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useApi } from '../hooks/useApi';
+import type { CourseRegistration } from '../lib/api';
 import { api } from '../lib/api';
 import type { AuthUser } from '../lib/auth';
 import { Role } from '../lib/roles';
@@ -13,7 +14,12 @@ type CoursesProps = {
 
 export const Courses = ({ user }: CoursesProps) => {
   const fetcher = useCallback(() => api.getCourses(), []);
+  const regFetcher = useCallback(
+    () => (user.role === Role.TRAINEE ? api.getMyRegistrations() : Promise.resolve([])),
+    [user.role],
+  );
   const { data: courses, loading } = useApi(fetcher);
+  const { data: myRegs, refetch: refetchRegs } = useApi(regFetcher);
 
   if (loading) return <LoadingSpinner />;
   if (!courses) return null;
@@ -53,7 +59,15 @@ export const Courses = ({ user }: CoursesProps) => {
         )}
         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
           {advanced.map((c) => (
-            <CourseCard key={c.id} course={c} typeLabel={typeLabel} typeColor={typeColor} />
+            <CourseCard
+              key={c.id}
+              course={c}
+              typeLabel={typeLabel}
+              typeColor={typeColor}
+              showRegister={isTrainee}
+              myRegistrations={myRegs ?? []}
+              onRegister={refetchRegs}
+            />
           ))}
         </div>
       </div>
@@ -74,10 +88,49 @@ type CourseCardProps = {
   };
   typeLabel: (type: string) => string;
   typeColor: (type: string) => string;
+  showRegister?: boolean;
+  myRegistrations?: CourseRegistration[];
+  onRegister?: () => void;
 };
 
-function CourseCard({ course, typeLabel, typeColor }: CourseCardProps) {
+function CourseCard({
+  course,
+  typeLabel,
+  typeColor,
+  showRegister,
+  myRegistrations,
+  onRegister,
+}: CourseCardProps) {
   const openInstances = course.instances?.filter((i) => i.status === 'OPEN') ?? [];
+  const [registering, setRegistering] = useState<number | null>(null);
+  const [registered, setRegistered] = useState<Set<number>>(new Set());
+
+  const getRegStatus = (instanceId: number) => {
+    const reg = myRegistrations?.find((r) => r.courseInstanceId === instanceId);
+    if (reg) return reg.status;
+    if (registered.has(instanceId)) return 'PENDING_COORD';
+    return null;
+  };
+
+  const statusLabel: Record<string, string> = {
+    PENDING_COORD: 'ממתין לאישור',
+    PENDING_BIS: 'בתהליך אישור',
+    APPROVED: 'אושר ✓',
+    REJECTED: 'נדחה',
+  };
+
+  const handleRegister = async (instanceId: number) => {
+    setRegistering(instanceId);
+    try {
+      await api.registerAdvanced({ courseInstanceId: instanceId });
+      setRegistered((prev) => new Set(prev).add(instanceId));
+      onRegister?.();
+    } catch {
+      // TODO: toast error
+    } finally {
+      setRegistering(null);
+    }
+  };
 
   return (
     <div className='rounded-xl border border-border bg-white p-6 shadow-sm transition-shadow hover:shadow-md'>
@@ -125,19 +178,51 @@ function CourseCard({ course, typeLabel, typeColor }: CourseCardProps) {
       {openInstances.length > 0 && (
         <div className='mt-4 border-t border-border pt-3'>
           <p className='mb-2 text-xs font-medium text-foreground'>מחזורים פתוחים:</p>
-          <div className='space-y-1.5'>
-            {openInstances.map((inst) => (
-              <div
-                key={inst.id}
-                className='flex items-center justify-between rounded-md bg-emerald-50 px-3 py-2'
-              >
-                <span className='text-xs font-medium text-emerald-700'>{inst.name}</span>
-                <span className='text-xs text-emerald-600'>
-                  {new Date(inst.startDate).toLocaleDateString('he-IL')} —{' '}
-                  {new Date(inst.endDate).toLocaleDateString('he-IL')}
-                </span>
-              </div>
-            ))}
+          <div className='space-y-2'>
+            {openInstances.map((inst) => {
+              const regStatus = showRegister ? getRegStatus(inst.id) : null;
+
+              return (
+                <div
+                  key={inst.id}
+                  className='flex items-center justify-between rounded-md bg-emerald-50 px-3 py-2'
+                >
+                  <div>
+                    <span className='text-xs font-medium text-emerald-700'>{inst.name}</span>
+                    <span className='mr-2 text-xs text-emerald-600'>
+                      {new Date(inst.startDate).toLocaleDateString('he-IL')} —{' '}
+                      {new Date(inst.endDate).toLocaleDateString('he-IL')}
+                    </span>
+                  </div>
+                  {showRegister && !regStatus && (
+                    <button
+                      onClick={() => handleRegister(inst.id)}
+                      disabled={registering === inst.id}
+                      className='flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50'
+                    >
+                      {registering === inst.id ? (
+                        <Loader2 size={12} className='animate-spin' />
+                      ) : null}
+                      הירשם
+                    </button>
+                  )}
+                  {showRegister && regStatus && (
+                    <span
+                      className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        regStatus === 'APPROVED'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : regStatus === 'REJECTED'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                      }`}
+                    >
+                      {regStatus === 'APPROVED' && <Check size={12} />}
+                      {statusLabel[regStatus] ?? regStatus}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

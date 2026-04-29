@@ -80,6 +80,8 @@ export type CommandCandidacy = {
   status: 'PENDING' | 'COORD_REVIEWED' | 'APPROVED' | 'REJECTED';
   motivation: string | null;
   commanderNotes: string | null;
+  reviewNotes: string | null;
+  reviewedById: number | null;
   candidate?: User & { team?: Team };
   submittedBy?: User;
   courseInstance?: CourseInstance & { course?: Course };
@@ -116,6 +118,7 @@ export const api = {
     fetchJson<AuthUser>('/auth/login', { method: 'POST', body: JSON.stringify({ uniqueId }) }),
   getMe: () => fetchJson<AuthUser>('/auth/me'),
   getUsers: () => fetchJson<User[]>('/auth/users'),
+  getTeamMembers: (teamId: number) => fetchJson<User[]>(`/auth/team/${teamId}/members`),
 
   // Branches
   getBranches: () => fetchJson<Branch[]>('/branches'),

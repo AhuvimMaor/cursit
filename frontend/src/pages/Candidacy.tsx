@@ -1,9 +1,9 @@
-import { CheckCircle2, Clock, Eye, XCircle } from 'lucide-react';
-import { useCallback } from 'react';
+import { CheckCircle2, Clock, Eye, Loader2, Plus, XCircle } from 'lucide-react';
+import { useCallback, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useApi } from '../hooks/useApi';
-import type { CommandCandidacy } from '../lib/api';
+import type { CommandCandidacy, Course, User } from '../lib/api';
 import { api } from '../lib/api';
 import type { AuthUser } from '../lib/auth';
 import { Role } from '../lib/roles';
@@ -35,6 +35,7 @@ export const Candidacy = ({ user }: CandidacyProps) => {
   }, [user.role]);
 
   const { data: candidacies, loading, refetch } = useApi(fetcher);
+  const [showForm, setShowForm] = useState(false);
 
   if (loading) return <LoadingSpinner />;
   if (!candidacies) return null;
@@ -47,12 +48,15 @@ export const Candidacy = ({ user }: CandidacyProps) => {
         : 'המועמדויות שהגשתי';
 
   const handleApprove = async (id: number) => {
-    await api.approveCandidacy(id);
+    const notes = prompt('הערות (אופציונלי):');
+    await api.approveCandidacy(id, notes ?? undefined);
     refetch();
   };
 
   const handleReject = async (id: number) => {
-    await api.rejectCandidacy(id);
+    const notes = prompt('סיבת דחייה:');
+    if (!notes) return;
+    await api.rejectCandidacy(id, notes);
     refetch();
   };
 
@@ -63,12 +67,34 @@ export const Candidacy = ({ user }: CandidacyProps) => {
 
   return (
     <div className='space-y-6'>
-      <div>
-        <h1 className='text-2xl font-bold text-foreground'>{title}</h1>
-        <p className='mt-1 text-sm text-muted-foreground'>{candidacies.length} מועמדויות</p>
+      <div className='flex items-center justify-between'>
+        <div>
+          <h1 className='text-2xl font-bold text-foreground'>{title}</h1>
+          <p className='mt-1 text-sm text-muted-foreground'>{candidacies.length} מועמדויות</p>
+        </div>
+        {user.role === Role.TEAM_LEADER && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
+          >
+            <Plus size={16} />
+            הגש מועמדות
+          </button>
+        )}
       </div>
 
-      {candidacies.length === 0 ? (
+      {showForm && user.teamId && (
+        <CandidacyForm
+          teamId={user.teamId}
+          onSubmitted={() => {
+            setShowForm(false);
+            refetch();
+          }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+
+      {candidacies.length === 0 && !showForm ? (
         <div className='rounded-xl border border-border bg-white p-8 text-center shadow-sm'>
           <p className='text-sm text-muted-foreground'>אין מועמדויות</p>
         </div>
@@ -113,7 +139,10 @@ export const Candidacy = ({ user }: CandidacyProps) => {
                   </p>
                 )}
 
-                {/* Actions */}
+                {c.reviewNotes && (
+                  <p className='mt-1 text-xs text-muted-foreground'>הערות בדיקה: {c.reviewNotes}</p>
+                )}
+
                 {user.role === Role.BRANCH_COORD && c.status === 'PENDING' && (
                   <div className='mt-4 flex gap-2 border-t border-border pt-3'>
                     <button
@@ -150,3 +179,134 @@ export const Candidacy = ({ user }: CandidacyProps) => {
     </div>
   );
 };
+
+type CandidacyFormProps = {
+  teamId: number;
+  onSubmitted: () => void;
+  onCancel: () => void;
+};
+
+function CandidacyForm({ teamId, onSubmitted, onCancel }: CandidacyFormProps) {
+  const membersFetcher = useCallback(() => api.getTeamMembers(teamId), [teamId]);
+  const coursesFetcher = useCallback(() => api.getCourses(), []);
+  const { data: members, loading: l1 } = useApi(membersFetcher);
+  const { data: courses, loading: l2 } = useApi(coursesFetcher);
+
+  const [candidateId, setCandidateId] = useState('');
+  const [instanceId, setInstanceId] = useState('');
+  const [motivation, setMotivation] = useState('');
+  const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const foundationCourses = courses?.filter((c: Course) => c.type === 'FOUNDATION') ?? [];
+  const allInstances = foundationCourses.flatMap((c: Course) =>
+    (c.instances ?? [])
+      .filter((i) => i.status === 'OPEN')
+      .map((i) => ({ ...i, courseName: c.name })),
+  );
+
+  const handleSubmit = async () => {
+    if (!candidateId || !instanceId) {
+      setError('יש לבחור משתתף ומחזור');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      await api.submitCandidacy({
+        courseInstanceId: Number(instanceId),
+        candidateId: Number(candidateId),
+        motivation: motivation || undefined,
+        commanderNotes: notes || undefined,
+      });
+      onSubmitted();
+    } catch {
+      setError('שגיאה בהגשת המועמדות');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (l1 || l2) return <LoadingSpinner />;
+
+  return (
+    <div className='rounded-xl border-2 border-primary/20 bg-primary/5 p-6'>
+      <h3 className='mb-4 text-base font-semibold text-foreground'>הגשת מועמדות חדשה</h3>
+
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+        <div>
+          <label className='mb-1 block text-xs font-medium text-foreground'>בחר משתתף מהצוות</label>
+          <select
+            value={candidateId}
+            onChange={(e) => setCandidateId(e.target.value)}
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+          >
+            <option value=''>בחר...</option>
+            {members?.map((m: User) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className='mb-1 block text-xs font-medium text-foreground'>בחר מחזור קורס</label>
+          <select
+            value={instanceId}
+            onChange={(e) => setInstanceId(e.target.value)}
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+          >
+            <option value=''>בחר...</option>
+            {allInstances.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.courseName} — {i.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className='mt-4'>
+        <label className='mb-1 block text-xs font-medium text-foreground'>מוטיבציה</label>
+        <textarea
+          value={motivation}
+          onChange={(e) => setMotivation(e.target.value)}
+          placeholder='מדוע המשתתף מתאים?'
+          rows={3}
+          className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+        />
+      </div>
+
+      <div className='mt-3'>
+        <label className='mb-1 block text-xs font-medium text-foreground'>הערות</label>
+        <input
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder='הערות נוספות (אופציונלי)'
+          className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+        />
+      </div>
+
+      {error && <p className='mt-2 text-xs text-red-600'>{error}</p>}
+
+      <div className='mt-4 flex gap-2'>
+        <button
+          onClick={handleSubmit}
+          disabled={submitting}
+          className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50'
+        >
+          {submitting && <Loader2 size={14} className='animate-spin' />}
+          הגש מועמדות
+        </button>
+        <button
+          onClick={onCancel}
+          className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'
+        >
+          ביטול
+        </button>
+      </div>
+    </div>
+  );
+}
