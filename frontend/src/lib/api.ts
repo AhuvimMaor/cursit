@@ -1,7 +1,21 @@
 import type { AuthUser } from './auth';
 import { loadUser } from './auth';
 
-const API_BASE = '/api';
+const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
+
+const normalizeApiBase = (raw: string) => {
+  const trimmed = trimTrailingSlash(raw.trim());
+  if (trimmed.startsWith('http') && !trimmed.endsWith('/api')) {
+    return `${trimmed}/api`;
+  }
+  return trimmed;
+};
+
+const API_BASE =
+  typeof import.meta.env.VITE_API_BASE_URL === 'string' &&
+  import.meta.env.VITE_API_BASE_URL.trim().length > 0
+    ? normalizeApiBase(import.meta.env.VITE_API_BASE_URL)
+    : '/api';
 
 const fetchJson = async <T>(url: string, options?: RequestInit): Promise<T> => {
   const user = loadUser();
