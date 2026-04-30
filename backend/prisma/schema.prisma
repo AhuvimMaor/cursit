@@ -21,6 +21,7 @@ enum UserRole {
 enum CourseType {
   FOUNDATION
   ADVANCED
+  LEADERSHIP
 }
 
 enum CourseInstanceStatus {
@@ -48,6 +49,7 @@ enum CandidacyStatus {
 }
 
 enum RegistrationStatus {
+  PENDING_TL
   PENDING_COORD
   PENDING_BIS
   APPROVED
@@ -97,8 +99,10 @@ model User {
   candidaciesAsSubmitter CommandCandidacy[] @relation("SubmitterUser")
   candidacyReviews       CommandCandidacy[] @relation("ReviewerUser")
   registrations          CourseRegistration[] @relation("RegistrantUser")
+  tlApprovals            CourseRegistration[] @relation("TlApprover")
   coordApprovals         CourseRegistration[] @relation("CoordApprover")
   bisApprovals           CourseRegistration[] @relation("BisApprover")
+  eventLogs              EventLog[]
 }
 
 // ──────────────────────────────────────────
@@ -186,10 +190,14 @@ model CourseRegistration {
   courseInstance    CourseInstance      @relation(fields: [courseInstanceId], references: [id])
   userId           Int
   user             User               @relation("RegistrantUser", fields: [userId], references: [id])
-  status           RegistrationStatus @default(PENDING_COORD)
+  status           RegistrationStatus @default(PENDING_TL)
   formData         Json?
 
-  
+  tlApprovedById    Int?
+  tlApprovedBy      User?     @relation("TlApprover", fields: [tlApprovedById], references: [id])
+  tlApprovedAt      DateTime?
+  tlNotes           String?   @db.Text
+
   coordApprovedById Int?
   coordApprovedBy   User?     @relation("CoordApprover", fields: [coordApprovedById], references: [id])
   coordApprovedAt   DateTime?
@@ -235,4 +243,23 @@ model InfoPage {
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ──────────────────────────────────────────
+// Audit Log
+// ──────────────────────────────────────────
+
+model EventLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  action     String   @db.VarChar(64)
+  entityType String   @db.VarChar(64)
+  entityId   Int?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

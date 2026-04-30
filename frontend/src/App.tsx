@@ -5,6 +5,7 @@ import type { AuthUser } from './lib/auth';
 import { clearUser, loadUser, saveUser } from './lib/auth';
 import type { Page } from './lib/permissions';
 import { canAccess, getDefaultPage } from './lib/permissions';
+import { Admin } from './pages/Admin';
 import { Approvals } from './pages/Approvals';
 import { Candidacy } from './pages/Candidacy';
 import { Courses } from './pages/Courses';
@@ -13,6 +14,7 @@ import { Gantt } from './pages/Gantt';
 import { Info } from './pages/Info';
 import { Login } from './pages/Login';
 import { MyRegistrations } from './pages/MyRegistrations';
+import { Schedule } from './pages/Schedule';
 
 export const App = () => {
   const [user, setUser] = useState<AuthUser | null>(loadUser);
@@ -44,8 +46,10 @@ export const App = () => {
     switch (page) {
       case 'dashboard':
         return <Dashboard user={user} />;
+      case 'schedule':
+        return <Schedule user={user} />;
       case 'gantt':
-        return <Gantt />;
+        return <Gantt user={user} />;
       case 'courses':
         return <Courses user={user} />;
       case 'candidacy':
@@ -56,6 +60,8 @@ export const App = () => {
         return <MyRegistrations />;
       case 'info':
         return <Info />;
+      case 'admin':
+        return <Admin />;
     }
   };
 

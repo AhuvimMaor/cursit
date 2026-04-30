@@ -42,7 +42,7 @@ export const Candidacy = ({ user }: CandidacyProps) => {
 
   const title =
     user.role === Role.BIS_CDR
-      ? 'כל המועמדויות'
+      ? 'כל המועמדויות לניהול'
       : user.role === Role.BRANCH_COORD
         ? 'מועמדויות הענף'
         : 'המועמדויות שהגשתי';
@@ -72,7 +72,7 @@ export const Candidacy = ({ user }: CandidacyProps) => {
           <h1 className='text-2xl font-bold text-foreground'>{title}</h1>
           <p className='mt-1 text-sm text-muted-foreground'>{candidacies.length} מועמדויות</p>
         </div>
-        {user.role === Role.TEAM_LEADER && (
+        {(user.role === Role.TEAM_LEADER || user.role === Role.BIS_CDR) && (
           <button
             onClick={() => setShowForm(!showForm)}
             className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
@@ -83,9 +83,10 @@ export const Candidacy = ({ user }: CandidacyProps) => {
         )}
       </div>
 
-      {showForm && user.teamId && (
+      {showForm && (
         <CandidacyForm
-          teamId={user.teamId}
+          teamId={user.teamId ?? undefined}
+          isAdmin={user.role === Role.BIS_CDR}
           onSubmitted={() => {
             setShowForm(false);
             refetch();
@@ -181,13 +182,22 @@ export const Candidacy = ({ user }: CandidacyProps) => {
 };
 
 type CandidacyFormProps = {
-  teamId: number;
+  teamId?: number;
+  isAdmin?: boolean;
   onSubmitted: () => void;
   onCancel: () => void;
 };
 
-function CandidacyForm({ teamId, onSubmitted, onCancel }: CandidacyFormProps) {
-  const membersFetcher = useCallback(() => api.getTeamMembers(teamId), [teamId]);
+function CandidacyForm({ teamId, isAdmin, onSubmitted, onCancel }: CandidacyFormProps) {
+  const membersFetcher = useCallback(
+    () =>
+      isAdmin
+        ? api.getUsers().then((users) => users.filter((u) => u.role === 'TRAINEE'))
+        : teamId
+          ? api.getTeamMembers(teamId)
+          : Promise.resolve([]),
+    [teamId, isAdmin],
+  );
   const coursesFetcher = useCallback(() => api.getCourses(), []);
   const { data: members, loading: l1 } = useApi(membersFetcher);
   const { data: courses, loading: l2 } = useApi(coursesFetcher);

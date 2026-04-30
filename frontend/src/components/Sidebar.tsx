@@ -7,6 +7,8 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
+  Search,
+  Settings,
   Users,
 } from 'lucide-react';
 
@@ -24,12 +26,14 @@ type SidebarProps = {
 
 const NAV_ITEMS: { page: Page; label: string; icon: React.ReactNode }[] = [
   { page: 'dashboard', label: 'לוח בקרה', icon: <LayoutDashboard size={20} /> },
+  { page: 'schedule', label: 'לוח זמנים', icon: <Calendar size={20} /> },
   { page: 'gantt', label: 'גאנט קורסים', icon: <Calendar size={20} /> },
   { page: 'courses', label: 'קטלוג קורסים', icon: <GraduationCap size={20} /> },
   { page: 'candidacy', label: 'מועמדויות', icon: <Users size={20} /> },
   { page: 'approvals', label: 'אישור רישומים', icon: <CheckSquare size={20} /> },
   { page: 'my-registrations', label: 'הרישומים שלי', icon: <ClipboardList size={20} /> },
   { page: 'info', label: 'מידע', icon: <FileText size={20} /> },
+  { page: 'admin', label: 'ניהול', icon: <Settings size={20} /> },
 ];
 
 export const Sidebar = ({ currentPage, onNavigate, user, onLogout }: SidebarProps) => {
@@ -42,7 +46,22 @@ export const Sidebar = ({ currentPage, onNavigate, user, onLogout }: SidebarProp
         <span className='text-xl font-bold text-foreground'>Coursit</span>
       </div>
 
-      <nav className='flex-1 px-3 py-4'>
+      {/* Search */}
+      <div className='border-b border-border px-3 py-2'>
+        <div className='relative'>
+          <Search
+            size={14}
+            className='absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground'
+          />
+          <input
+            type='text'
+            placeholder='חיפוש...'
+            className='w-full rounded-lg bg-muted/50 py-1.5 pr-8 pl-3 text-xs outline-none placeholder:text-muted-foreground focus:bg-muted'
+          />
+        </div>
+      </div>
+
+      <nav className='flex-1 overflow-y-auto px-3 py-3'>
         <ul className='space-y-1'>
           {visibleItems.map((item) => {
             const isActive = currentPage === item.page;

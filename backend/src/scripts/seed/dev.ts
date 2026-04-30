@@ -213,8 +213,8 @@ const main = async () => {
     }),
     prisma.course.create({
       data: {
-        name: 'קורס ראשי צוותות',
-        description: 'קורס הכשרת ראשי צוותות. תפקיד ניהולי ראשון.',
+        name: 'קורס הכשרה בסיסי',
+        description: 'קורס הכשרה בסיסי למשתתפים חדשים. כולל מיונים ושלבי הכנה.',
         type: 'FOUNDATION',
         location: 'מרכז הדרכה ראשי',
         isPublished: true,
@@ -267,8 +267,29 @@ const main = async () => {
     }),
   ]);
 
+  const leadershipCourses = await Promise.all([
+    prisma.course.create({
+      data: {
+        name: 'קורס ראשי צוותות',
+        description: 'קורס הכשרה לתפקיד ראש צוות. מנהיגות, ניהול אנשים, ותכנון עבודה.',
+        type: 'LEADERSHIP',
+        location: 'מרכז הדרכה ראשי',
+        isPublished: true,
+      },
+    }),
+    prisma.course.create({
+      data: {
+        name: 'קורס מנהלי ביניים',
+        description: 'הכשרה למנהלי ביניים. אסטרטגיה, קבלת החלטות, וניהול צוותות מרובים.',
+        type: 'LEADERSHIP',
+        location: 'מרכז הדרכה ראשי',
+        isPublished: true,
+      },
+    }),
+  ]);
+
   console.log(
-    `Created ${foundationCourses.length} foundation + ${advancedCourses.length} advanced courses`,
+    `Created ${foundationCourses.length} foundation + ${advancedCourses.length} advanced + ${leadershipCourses.length} leadership courses`,
   );
 
   // ── Course Instances ──
@@ -446,7 +467,7 @@ const main = async () => {
   // ── Registrations ──
   await prisma.courseRegistration.createMany({
     data: [
-      { courseInstanceId: cyberInstance.id, userId: trainees[0].id, status: 'PENDING_COORD' },
+      { courseInstanceId: cyberInstance.id, userId: trainees[0].id, status: 'PENDING_TL' },
       {
         courseInstanceId: cyberInstance.id,
         userId: trainees[3].id,
@@ -473,7 +494,7 @@ const main = async () => {
         status: 'REJECTED',
         rejectionReason: 'אין מקום במחזור הנוכחי. נא לנסות שוב במחזור הבא.',
       },
-      { courseInstanceId: gisInstance.id, userId: trainees[2].id, status: 'PENDING_COORD' },
+      { courseInstanceId: gisInstance.id, userId: trainees[2].id, status: 'PENDING_TL' },
     ],
   });
 

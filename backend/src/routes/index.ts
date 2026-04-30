@@ -4,6 +4,7 @@ import { authRoutes } from './auth.js';
 import { branchRoutes } from './branches.js';
 import { candidacyRoutes } from './candidacy.js';
 import { courseRoutes } from './courses.js';
+import { eventRoutes } from './events.js';
 import { ganttRoutes } from './gantt.js';
 import { healthRoutes } from './health.js';
 import { infoRoutes } from './info.js';
@@ -18,4 +19,5 @@ export const registerRoutes = (fastify: FastifyInstance) => {
   fastify.register(candidacyRoutes, { prefix: '/api/candidacy' });
   fastify.register(registrationRoutes, { prefix: '/api/registrations' });
   fastify.register(infoRoutes, { prefix: '/api/info' });
+  fastify.register(eventRoutes, { prefix: '/api/events' });
 };

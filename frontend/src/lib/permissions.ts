@@ -7,13 +7,24 @@ export type Page =
   | 'candidacy'
   | 'approvals'
   | 'my-registrations'
-  | 'info';
+  | 'info'
+  | 'schedule'
+  | 'admin';
 
 const ROLE_PAGES: Record<Role, Page[]> = {
-  [Role.BIS_CDR]: ['dashboard', 'gantt', 'courses', 'candidacy', 'approvals', 'info'],
-  [Role.BRANCH_COORD]: ['dashboard', 'gantt', 'courses', 'candidacy', 'approvals'],
-  [Role.TEAM_LEADER]: ['dashboard', 'gantt', 'courses', 'candidacy'],
-  [Role.TRAINEE]: ['dashboard', 'gantt', 'courses', 'my-registrations', 'info'],
+  [Role.BIS_CDR]: [
+    'dashboard',
+    'schedule',
+    'gantt',
+    'courses',
+    'candidacy',
+    'approvals',
+    'info',
+    'admin',
+  ],
+  [Role.BRANCH_COORD]: ['dashboard', 'schedule', 'gantt', 'courses', 'candidacy', 'approvals'],
+  [Role.TEAM_LEADER]: ['dashboard', 'schedule', 'gantt', 'courses', 'candidacy', 'approvals'],
+  [Role.TRAINEE]: ['dashboard', 'schedule', 'courses', 'my-registrations', 'info'],
 };
 
 export const getAllowedPages = (role: Role): Page[] => ROLE_PAGES[role];

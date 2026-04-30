@@ -26,4 +26,15 @@ export const branchRoutes = async (fastify: FastifyInstance) => {
       return reply.status(201).send(branch);
     },
   );
+
+  fastify.post<{ Body: { name: string; branchId: number } }>(
+    '/teams',
+    { preHandler: [authenticate, requireRole('BIS_CDR')] },
+    async (request, reply) => {
+      const team = await prisma.team.create({
+        data: { name: request.body.name, branchId: request.body.branchId },
+      });
+      return reply.status(201).send(team);
+    },
+  );
 };

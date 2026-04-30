@@ -1,9 +1,53 @@
 import type { FastifyInstance } from 'fastify';
 
+import { logEvent } from '../lib/eventLog.js';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
 export const registrationRoutes = async (fastify: FastifyInstance) => {
+  // Get all registrations for a specific course instance
+  fastify.get<{ Params: { instanceId: string } }>(
+    '/by-instance/:instanceId',
+    { preHandler: [authenticate, requireRole('BIS_CDR', 'BRANCH_COORD', 'TEAM_LEADER')] },
+    async (request) => {
+      return prisma.courseRegistration.findMany({
+        where: { courseInstanceId: Number(request.params.instanceId) },
+        include: {
+          user: { include: { team: true, branch: true } },
+          tlApprovedBy: true,
+          coordApprovedBy: true,
+          bisApprovedBy: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+  );
+
+  // Admin manually registers a participant
+  fastify.post<{ Body: { courseInstanceId: number; userId: number; status?: string } }>(
+    '/manual',
+    { preHandler: [authenticate, requireRole('BIS_CDR')] },
+    async (request, reply) => {
+      const { courseInstanceId, userId, status } = request.body;
+      const registration = await prisma.courseRegistration.create({
+        data: {
+          courseInstanceId,
+          userId,
+          status: (status as 'APPROVED' | 'PENDING_TL') ?? 'APPROVED',
+          bisApprovedById: request.userId,
+          bisApprovedAt: new Date(),
+        },
+        include: { user: true, courseInstance: { include: { course: true } } },
+      });
+      await logEvent(request.userId!, 'REGISTER', 'REGISTRATION', registration.id, {
+        userId,
+        courseInstanceId,
+        manual: true,
+      });
+      return reply.status(201).send(registration);
+    },
+  );
+
   fastify.post<{ Body: { courseInstanceId: number; formData?: Record<string, unknown> } }>(
     '/advanced',
     { preHandler: [authenticate, requireRole('TRAINEE')] },
@@ -45,6 +89,36 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
           coordApprovedBy: true,
         },
         orderBy: { createdAt: 'desc' },
+      });
+    },
+  );
+
+  // Team leader sees team registrations
+  fastify.get(
+    '/team',
+    { preHandler: [authenticate, requireRole('TEAM_LEADER')] },
+    async (request) => {
+      return prisma.courseRegistration.findMany({
+        where: { user: { teamId: request.userTeamId }, status: 'PENDING_TL' },
+        include: { user: true, courseInstance: { include: { course: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+  );
+
+  // Team leader approves
+  fastify.patch<{ Params: { id: string }; Body: { tlNotes?: string } }>(
+    '/:id/approve-tl',
+    { preHandler: [authenticate, requireRole('TEAM_LEADER')] },
+    async (request) => {
+      return prisma.courseRegistration.update({
+        where: { id: Number(request.params.id) },
+        data: {
+          status: 'PENDING_COORD',
+          tlApprovedById: request.userId,
+          tlApprovedAt: new Date(),
+          tlNotes: request.body.tlNotes,
+        },
       });
     },
   );

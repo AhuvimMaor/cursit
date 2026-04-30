@@ -6,6 +6,11 @@ import { useApi } from '../hooks/useApi';
 import { api } from '../lib/api';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  PENDING_TL: {
+    label: 'ממתין לאישור ראש צוות',
+    color: 'bg-orange-100 text-orange-700',
+    icon: <Clock size={14} />,
+  },
   PENDING_COORD: {
     label: 'ממתין לאישור רכז',
     color: 'bg-yellow-100 text-yellow-700',
@@ -73,7 +78,14 @@ export const MyRegistrations = () => {
                   <div className='h-px flex-1 bg-border' />
                   <div className='flex items-center gap-1'>
                     <div
-                      className={`h-2 w-2 rounded-full ${r.status === 'PENDING_COORD' ? 'bg-yellow-400' : 'bg-emerald-500'}`}
+                      className={`h-2 w-2 rounded-full ${r.status === 'PENDING_TL' ? 'bg-orange-400' : 'bg-emerald-500'}`}
+                    />
+                    <span className='text-xs text-muted-foreground'>ראש צוות</span>
+                  </div>
+                  <div className='h-px flex-1 bg-border' />
+                  <div className='flex items-center gap-1'>
+                    <div
+                      className={`h-2 w-2 rounded-full ${r.status === 'PENDING_TL' ? 'bg-gray-300' : r.status === 'PENDING_COORD' ? 'bg-yellow-400' : 'bg-emerald-500'}`}
                     />
                     <span className='text-xs text-muted-foreground'>רכז</span>
                   </div>
