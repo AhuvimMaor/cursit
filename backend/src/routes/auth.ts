@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 
+import { logEvent } from '../lib/eventLog.js';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
@@ -13,6 +14,7 @@ export const authRoutes = async (fastify: FastifyInstance) => {
     if (!user || !user.isActive) {
       return reply.status(401).send({ error: 'User not found' });
     }
+    await logEvent(user.id, 'LOGIN', 'USER', user.id);
     return user;
   });
 
@@ -25,6 +27,7 @@ export const authRoutes = async (fastify: FastifyInstance) => {
       include: { team: true, branch: true },
     });
     if (!user) return reply.status(401).send({ error: 'User not found' });
+    await logEvent(user.id, 'LOGIN', 'USER', user.id);
     return user;
   });
 

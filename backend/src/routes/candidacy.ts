@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 
+import { logEvent } from '../lib/eventLog.js';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
@@ -24,6 +25,10 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
           motivation,
           commanderNotes,
         },
+      });
+      await logEvent(request.userId!, 'SUBMIT', 'CANDIDACY', candidacy.id, {
+        candidateId,
+        courseInstanceId,
       });
       return reply.status(201).send(candidacy);
     },
@@ -89,7 +94,7 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     '/:id/approve',
     { preHandler: [authenticate, requireRole('BIS_CDR')] },
     async (request) => {
-      return prisma.commandCandidacy.update({
+      const result = await prisma.commandCandidacy.update({
         where: { id: Number(request.params.id) },
         data: {
           status: 'APPROVED',
@@ -97,6 +102,8 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
           reviewNotes: request.body.reviewNotes,
         },
       });
+      await logEvent(request.userId!, 'APPROVE', 'CANDIDACY', result.id);
+      return result;
     },
   );
 
@@ -104,7 +111,7 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     '/:id/reject',
     { preHandler: [authenticate, requireRole('BIS_CDR')] },
     async (request) => {
-      return prisma.commandCandidacy.update({
+      const result = await prisma.commandCandidacy.update({
         where: { id: Number(request.params.id) },
         data: {
           status: 'REJECTED',
@@ -112,6 +119,8 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
           reviewNotes: request.body.reviewNotes,
         },
       });
+      await logEvent(request.userId!, 'REJECT', 'CANDIDACY', result.id);
+      return result;
     },
   );
 };

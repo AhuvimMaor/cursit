@@ -60,6 +60,9 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
           formData: formData ?? undefined,
         },
       });
+      await logEvent(request.userId!, 'REGISTER', 'REGISTRATION', registration.id, {
+        courseInstanceId,
+      });
       return reply.status(201).send(registration);
     },
   );
