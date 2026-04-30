@@ -4,10 +4,12 @@ import Fastify from 'fastify';
 import type { FastifyInstance } from 'fastify';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { registerRoutes } from './routes/index.js';
 
-const frontendDist = path.join(process.cwd(), 'frontend', 'dist');
+const serverDir = path.dirname(fileURLToPath(import.meta.url));
+const frontendDist = path.resolve(serverDir, '..', '..', 'frontend', 'dist');
 
 export const createServer = async (): Promise<FastifyInstance> => {
   const fastify = Fastify({

@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import type { FastifyInstance } from 'fastify';
 
 import { prisma } from '../lib/prisma.js';
@@ -13,7 +14,7 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
         data: {
           courseInstanceId,
           userId: request.userId!,
-          formData: formData ?? undefined,
+          formData: formData === undefined ? undefined : (formData as Prisma.InputJsonValue),
         },
       });
       return reply.status(201).send(registration);

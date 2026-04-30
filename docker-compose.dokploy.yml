@@ -5,6 +5,14 @@
 # In Dokploy: Project → New Service → Compose → Docker Compose → connect this Git repo,
 # branch (e.g. main), Compose path: `docker-compose.dokploy.yml`.
 #
+# Private repos — pick one:
+#   • Settings → Git → GitHub → Create GitHub App (if github.com/settings/apps/manifest works).
+#   • Compose provider “Git”: SSH URL `git@github.com:OWNER/REPO.git` + Dokploy SSH key whose
+#     public half is added as a read-only Deploy key on the repo (needs repo admin).
+#   • Compose provider “Git”: HTTPS URL with a PAT (rotate after switching methods):
+#       https://x-access-token:<GITHUB_PAT>@github.com/OWNER/REPO.git
+#     PAT must include Contents: Read on that repo (fine‑grained) or `repo` (classic).
+#
 # Environment (UI “Environment” tab — written to `.env` next to the compose file):
 #   POSTGRES_PASSWORD  required — DB password for user `cursit`
 #   DATABASE_URL       required — postgresql://cursit:<PASSWORD>@db:5432/cursit?schema=public
