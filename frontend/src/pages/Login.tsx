@@ -18,6 +18,38 @@ const ROLE_COLORS: Record<Role, string> = {
   [Role.TRAINEE]: 'bg-emerald-100 text-emerald-700',
 };
 
+const FALLBACK_USERS: AuthUser[] = [
+  { id: 1, uniqueId: '1000000', name: 'דוד כהן', role: Role.BIS_CDR },
+  {
+    id: 2,
+    uniqueId: '2000001',
+    name: 'שרה לוי',
+    role: Role.BRANCH_COORD,
+    branchId: 1,
+    branch: { id: 1, name: 'ענף טכנולוגיה' },
+  },
+  {
+    id: 3,
+    uniqueId: '3000001',
+    name: 'נועה מזרחי',
+    role: Role.TEAM_LEADER,
+    branchId: 1,
+    teamId: 1,
+    branch: { id: 1, name: 'ענף טכנולוגיה' },
+    team: { id: 1, name: 'צוות אלפא' },
+  },
+  {
+    id: 4,
+    uniqueId: '4000001',
+    name: 'יונתן לוי',
+    role: Role.TRAINEE,
+    branchId: 1,
+    teamId: 1,
+    branch: { id: 1, name: 'ענף טכנולוגיה' },
+    team: { id: 1, name: 'צוות אלפא' },
+  },
+];
+
 export const Login = ({ onLogin }: LoginProps) => {
   const fetchUsers = useCallback(() => api.getUsers(), []);
   const { data: users, loading } = useApi(fetchUsers);
@@ -31,14 +63,15 @@ export const Login = ({ onLogin }: LoginProps) => {
       const fullUser = await api.login(user.uniqueId);
       setTimeout(() => onLogin(fullUser), 400);
     } catch {
-      setLoggingIn(false);
-      setSelectedId(null);
+      // Production fallback until public backend is connected.
+      setTimeout(() => onLogin(user), 200);
     }
   };
 
   if (loading) return <LoadingSpinner />;
 
   const roleGroups = [Role.BIS_CDR, Role.BRANCH_COORD, Role.TEAM_LEADER, Role.TRAINEE];
+  const usersToShow = users && users.length > 0 ? users : FALLBACK_USERS;
 
   return (
     <div
@@ -60,7 +93,7 @@ export const Login = ({ onLogin }: LoginProps) => {
 
           <div className='max-h-[50vh] space-y-3 overflow-y-auto'>
             {roleGroups.map((role) => {
-              const roleUsers = users?.filter((u) => u.role === role) ?? [];
+              const roleUsers = usersToShow.filter((u) => u.role === role) ?? [];
               if (roleUsers.length === 0) return null;
 
               return (
