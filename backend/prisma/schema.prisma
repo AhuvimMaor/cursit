@@ -54,6 +54,15 @@ enum RegistrationStatus {
   REJECTED
 }
 
+enum AggregateType {
+  USER
+  COURSE
+  COURSE_INSTANCE
+  COURSE_PHASE
+  CANDIDACY
+  REGISTRATION
+}
+
 // ──────────────────────────────────────────
 // Organizational Structure
 // ──────────────────────────────────────────
@@ -99,6 +108,7 @@ model User {
   registrations          CourseRegistration[] @relation("RegistrantUser")
   coordApprovals         CourseRegistration[] @relation("CoordApprover")
   bisApprovals           CourseRegistration[] @relation("BisApprover")
+  eventsAsActor          Event[]             @relation("EventActor")
 }
 
 // ──────────────────────────────────────────
@@ -235,4 +245,30 @@ model InfoPage {
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ──────────────────────────────────────────
+// Event log (append-only)
+// ──────────────────────────────────────────
+
+model Event {
+  id               BigInt        @id @default(autoincrement())
+  eventType        String        @db.VarChar(64)
+  aggregateType    AggregateType
+  aggregateId      Int
+  actorUserId      Int?
+  actor            User?         @relation("EventActor", fields: [actorUserId], references: [id])
+  payload          Json
+  version          Int
+  flowId           String?       @db.Uuid
+  causationEventId BigInt?
+  causationEvent   Event?        @relation("EventCausation", fields: [causationEventId], references: [id])
+  causedEvents     Event[]       @relation("EventCausation")
+  occurredAt       DateTime      @default(now())
+
+  @@unique([aggregateType, aggregateId, version])
+  @@index([aggregateType, aggregateId, occurredAt])
+  @@index([eventType, occurredAt])
+  @@index([actorUserId, occurredAt])
+  @@index([flowId])
 }
