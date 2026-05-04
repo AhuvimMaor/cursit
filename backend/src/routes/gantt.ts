@@ -6,7 +6,7 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 export const ganttRoutes = async (fastify: FastifyInstance) => {
   fastify.get('/', async () => {
     const instances = await prisma.courseInstance.findMany({
-      where: { status: { in: ['OPEN', 'IN_PROGRESS'] } },
+      where: { status: { in: ['OPEN', 'IN_PROGRESS', 'COMPLETED'] } },
       include: {
         course: true,
         phases: { orderBy: { sortOrder: 'asc' } },

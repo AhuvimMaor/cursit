@@ -1,18 +1,7 @@
-import {
-  BookOpen,
-  Calendar,
-  CheckSquare,
-  ClipboardList,
-  FileText,
-  GraduationCap,
-  LayoutDashboard,
-  LogOut,
-  Search,
-  Settings,
-  Users,
-} from 'lucide-react';
+import { LogOut, Search } from 'lucide-react';
 
 import type { AuthUser } from '../lib/auth';
+import { APP_BRAND, NAV_GROUPS, PAGE_NAV_META } from '../lib/navConfig';
 import type { Page } from '../lib/permissions';
 import { canAccess } from '../lib/permissions';
 import { HEBREW_ROLES } from '../lib/roles';
@@ -24,81 +13,109 @@ type SidebarProps = {
   onLogout: () => void;
 };
 
-const NAV_ITEMS: { page: Page; label: string; icon: React.ReactNode }[] = [
-  { page: 'dashboard', label: 'לוח בקרה', icon: <LayoutDashboard size={20} /> },
-  { page: 'schedule', label: 'לוח זמנים', icon: <Calendar size={20} /> },
-  { page: 'gantt', label: 'גאנט קורסים', icon: <Calendar size={20} /> },
-  { page: 'courses', label: 'קטלוג קורסים', icon: <GraduationCap size={20} /> },
-  { page: 'candidacy', label: 'מועמדויות', icon: <Users size={20} /> },
-  { page: 'approvals', label: 'אישור רישומים', icon: <CheckSquare size={20} /> },
-  { page: 'my-registrations', label: 'הרישומים שלי', icon: <ClipboardList size={20} /> },
-  { page: 'info', label: 'מידע', icon: <FileText size={20} /> },
-  { page: 'admin', label: 'ניהול', icon: <Settings size={20} /> },
-];
-
 export const Sidebar = ({ currentPage, onNavigate, user, onLogout }: SidebarProps) => {
-  const visibleItems = NAV_ITEMS.filter((item) => canAccess(user.role, item.page));
+  const BRAND_ICON = APP_BRAND.icon;
 
   return (
-    <aside className='fixed right-0 top-0 z-40 flex h-screen w-64 flex-col border-l border-border bg-white'>
-      <div className='flex h-16 items-center gap-2.5 border-b border-border px-6'>
-        <BookOpen size={24} className='text-primary' />
-        <span className='text-xl font-bold text-foreground'>Coursit</span>
+    <aside className='fixed right-0 top-0 z-40 flex h-screen w-72 flex-col border-l border-slate-200/80 bg-gradient-to-b from-slate-50 to-white shadow-[inset_1px_0_0_rgba(255,255,255,0.6)]'>
+      {/* Brand */}
+      <div className='flex flex-col gap-0.5 border-b border-slate-200/80 px-4 py-4'>
+        <div className='flex items-center gap-2.5'>
+          <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-sm shadow-primary/25'>
+            <BRAND_ICON size={22} strokeWidth={2} />
+          </div>
+          <div className='min-w-0'>
+            <p className='truncate text-lg font-bold tracking-tight text-slate-900'>
+              {APP_BRAND.name}
+            </p>
+            <p className='truncate text-xs text-slate-500'>{APP_BRAND.tagline}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Search */}
-      <div className='border-b border-border px-3 py-2'>
+      {/* חיפוש — מושבת עד שיהיה מחובר לנתונים */}
+      <div className='border-b border-slate-200/80 px-3 py-2'>
         <div className='relative'>
           <Search
             size={14}
-            className='absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground'
+            className='pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400'
           />
           <input
-            type='text'
-            placeholder='חיפוש...'
-            className='w-full rounded-lg bg-muted/50 py-1.5 pr-8 pl-3 text-xs outline-none placeholder:text-muted-foreground focus:bg-muted'
+            type='search'
+            disabled
+            title='חיפוש יתווסף בהמשך'
+            placeholder='חיפוש — בקרוב'
+            className='w-full cursor-not-allowed rounded-xl border border-transparent bg-slate-100/80 py-2 pr-8 pl-3 text-xs text-slate-500 outline-none placeholder:text-slate-400'
           />
         </div>
       </div>
 
-      <nav className='flex-1 overflow-y-auto px-3 py-3'>
+      <nav className='flex-1 overflow-y-auto px-2 py-2'>
         <ul className='space-y-1'>
-          {visibleItems.map((item) => {
-            const isActive = currentPage === item.page;
-            return (
-              <li key={item.page}>
-                <button
-                  onClick={() => onNavigate(item.page)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              </li>
-            );
-          })}
+          {NAV_GROUPS.flatMap((group) => group.pages)
+            .filter((p) => canAccess(user.role, p))
+            .map((page) => {
+              const meta = PAGE_NAV_META[page];
+              const NAV_PAGE_ICON = meta.icon;
+              const isActive = currentPage === page;
+              return (
+                <li key={page}>
+                  <button
+                    type='button'
+                    onClick={() => onNavigate(page)}
+                    className={`group flex w-full flex-col gap-0.5 rounded-xl border px-2.5 py-2 text-right transition-all ${
+                      isActive
+                        ? 'border-primary/25 bg-white shadow-sm shadow-slate-200/60 ring-1 ring-primary/15'
+                        : 'border-transparent hover:border-slate-200/80 hover:bg-white/70'
+                    }`}
+                  >
+                    <span className='flex items-center gap-2.5'>
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                          isActive
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-slate-100/90 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700'
+                        }`}
+                      >
+                        <NAV_PAGE_ICON size={17} strokeWidth={2} />
+                      </span>
+                      <span
+                        className={`min-w-0 flex-1 truncate text-sm font-semibold ${
+                          isActive ? 'text-primary' : 'text-slate-800'
+                        }`}
+                      >
+                        {meta.label}
+                      </span>
+                      {isActive ? (
+                        <span className='h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_0_3px_rgba(59,130,246,0.25)]' />
+                      ) : null}
+                    </span>
+                    <span className='pr-[2.75rem] text-[11px] leading-snug text-slate-500'>
+                      {meta.description}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
         </ul>
       </nav>
 
-      <div className='border-t border-border p-4'>
-        <div className='flex items-center gap-3'>
-          <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary'>
+      <div className='border-t border-slate-200/80 bg-white/60 p-3 backdrop-blur-sm'>
+        <div className='flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50/80 p-2'>
+          <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary'>
             {user.name.charAt(0)}
           </div>
           <div className='min-w-0 flex-1'>
-            <p className='truncate text-sm font-medium text-foreground'>{user.name}</p>
-            <p className='text-xs text-muted-foreground'>{HEBREW_ROLES[user.role]}</p>
+            <p className='truncate text-sm font-medium text-slate-900'>{user.name}</p>
+            <p className='truncate text-xs text-slate-500'>{HEBREW_ROLES[user.role]}</p>
           </div>
           <button
+            type='button'
             onClick={onLogout}
-            className='rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500'
+            className='rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600'
             title='התנתקות'
           >
-            <LogOut size={16} />
+            <LogOut size={18} />
           </button>
         </div>
       </div>

@@ -16,10 +16,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
-  },
-  "references": [
-    {
-      "path": "../shared"
-    }
-  ]
+  }
 }

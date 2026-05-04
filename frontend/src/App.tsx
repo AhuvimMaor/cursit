@@ -8,17 +8,18 @@ import { canAccess, getDefaultPage } from './lib/permissions';
 import { Admin } from './pages/Admin';
 import { Approvals } from './pages/Approvals';
 import { Candidacy } from './pages/Candidacy';
-import { Courses } from './pages/Courses';
+import { CoursesHub } from './pages/CoursesHub';
 import { Dashboard } from './pages/Dashboard';
-import { Gantt } from './pages/Gantt';
 import { Info } from './pages/Info';
 import { Login } from './pages/Login';
 import { MyRegistrations } from './pages/MyRegistrations';
-import { Schedule } from './pages/Schedule';
 
 export const App = () => {
   const [user, setUser] = useState<AuthUser | null>(loadUser);
   const [page, setPage] = useState<Page>('dashboard');
+  const goToPage = (next: Page) => {
+    setPage(next);
+  };
 
   useEffect(() => {
     if (user && !canAccess(user.role, page)) {
@@ -45,13 +46,9 @@ export const App = () => {
   const renderPage = () => {
     switch (page) {
       case 'dashboard':
-        return <Dashboard user={user} />;
-      case 'schedule':
-        return <Schedule user={user} />;
-      case 'gantt':
-        return <Gantt user={user} />;
-      case 'courses':
-        return <Courses user={user} />;
+        return <Dashboard user={user} onNavigate={goToPage} />;
+      case 'courses-hub':
+        return <CoursesHub user={user} />;
       case 'candidacy':
         return <Candidacy user={user} />;
       case 'approvals':
@@ -66,9 +63,18 @@ export const App = () => {
   };
 
   return (
-    <div dir='rtl' className='min-h-screen bg-gray-50'>
-      <Sidebar currentPage={page} onNavigate={setPage} user={user} onLogout={handleLogout} />
-      <main className='mr-64 min-h-screen p-8'>{renderPage()}</main>
+    <div dir='rtl' className='min-h-screen bg-slate-100/80'>
+      <Sidebar
+        currentPage={page}
+        onNavigate={(p) => goToPage(p)}
+        user={user}
+        onLogout={handleLogout}
+      />
+      <main className='mr-72 min-h-screen p-4 sm:p-6 lg:p-8'>
+        <div className='mx-auto max-w-[1400px] rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-8'>
+          {renderPage()}
+        </div>
+      </main>
     </div>
   );
 };

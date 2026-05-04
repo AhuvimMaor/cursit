@@ -2,6 +2,7 @@ import { CheckCircle2, Clock, Eye, Loader2, Plus, XCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ScreenGuide } from '../components/ScreenGuide';
 import { useApi } from '../hooks/useApi';
 import type { CommandCandidacy, Course, User } from '../lib/api';
 import { api } from '../lib/api';
@@ -42,10 +43,10 @@ export const Candidacy = ({ user }: CandidacyProps) => {
 
   const title =
     user.role === Role.BIS_CDR
-      ? 'כל המועמדויות לניהול'
+      ? 'מועמדות לפיקוד — כל המערכת'
       : user.role === Role.BRANCH_COORD
-        ? 'מועמדויות הענף'
-        : 'המועמדויות שהגשתי';
+        ? 'מועמדות לפיקוד — הענף'
+        : 'מועמדות לפיקוד שהגשתי';
 
   const handleApprove = async (id: number) => {
     const notes = prompt('הערות (אופציונלי):');
@@ -65,17 +66,28 @@ export const Candidacy = ({ user }: CandidacyProps) => {
     refetch();
   };
 
+  const candidacyTags =
+    user.role === Role.BIS_CDR
+      ? (['כל הארגון', 'אישור / דחייה', 'סטטוס'] as const)
+      : user.role === Role.BRANCH_COORD
+        ? (['הענף שלך', 'בדיקת רכז', 'המשך למנהל'] as const)
+        : (['הגשות שלך', 'מעקב', 'טופס חדש'] as const);
+
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold text-foreground'>{title}</h1>
-          <p className='mt-1 text-sm text-muted-foreground'>{candidacies.length} מועמדויות</p>
-        </div>
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+        <ScreenGuide
+          className='min-w-0 flex-1'
+          eyebrow='תהליכים'
+          title={title}
+          subtitle={`${candidacies.length} הגשות לקורסי פיקוד — כרטיס לכל מועמדות; סטטוס בצבע.`}
+          tags={candidacyTags}
+        />
         {(user.role === Role.TEAM_LEADER || user.role === Role.BIS_CDR) && (
           <button
+            type='button'
             onClick={() => setShowForm(!showForm)}
-            className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
+            className='flex shrink-0 items-center justify-center gap-1.5 self-start rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 sm:self-auto'
           >
             <Plus size={16} />
             הגש מועמדות
@@ -100,11 +112,14 @@ export const Candidacy = ({ user }: CandidacyProps) => {
           <p className='text-sm text-muted-foreground'>אין מועמדויות</p>
         </div>
       ) : (
-        <div className='space-y-4'>
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3'>
           {candidacies.map((c: CommandCandidacy) => {
             const status = STATUS_CONFIG[c.status] ?? STATUS_CONFIG.PENDING;
             return (
-              <div key={c.id} className='rounded-xl border border-border bg-white p-6 shadow-sm'>
+              <div
+                key={c.id}
+                className='flex flex-col rounded-xl border border-border bg-white p-5 shadow-sm'
+              >
                 <div className='flex items-start justify-between'>
                   <div className='flex-1'>
                     <div className='flex items-center gap-2'>
@@ -192,7 +207,7 @@ function CandidacyForm({ teamId, isAdmin, onSubmitted, onCancel }: CandidacyForm
   const membersFetcher = useCallback(
     () =>
       isAdmin
-        ? api.getUsers().then((users) => users.filter((u) => u.role === 'TRAINEE'))
+        ? api.getUsers().then((users) => users.filter((u) => u.role === Role.TRAINEE))
         : teamId
           ? api.getTeamMembers(teamId)
           : Promise.resolve([]),

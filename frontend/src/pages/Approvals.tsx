@@ -2,6 +2,7 @@ import { CheckCircle2, Clock, Search, XCircle } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ScreenGuide } from '../components/ScreenGuide';
 import { useApi } from '../hooks/useApi';
 import type { CourseRegistration } from '../lib/api';
 import { api } from '../lib/api';
@@ -59,10 +60,10 @@ export const Approvals = ({ user }: ApprovalsProps) => {
 
   const title =
     user.role === Role.BIS_CDR
-      ? 'אישור רישומים'
+      ? 'אישור רישום לקורס'
       : user.role === Role.TEAM_LEADER
-        ? 'אישור רישומים צוותיים'
-        : 'רישומים ענפיים';
+        ? 'אישור רישום לקורס — הצוות'
+        : 'אישור רישום לקורס — הענף';
 
   const handleApproveTl = async (id: number) => {
     const notes = prompt('הערות (אופציונלי):');
@@ -70,7 +71,8 @@ export const Approvals = ({ user }: ApprovalsProps) => {
     refetch();
   };
 
-  const statusCounts = {
+  const statusCounts: Record<string, number> = {
+    PENDING_TL: registrations?.filter((r) => r.status === 'PENDING_TL').length ?? 0,
     PENDING_COORD: registrations?.filter((r) => r.status === 'PENDING_COORD').length ?? 0,
     PENDING_BIS: registrations?.filter((r) => r.status === 'PENDING_BIS').length ?? 0,
     APPROVED: registrations?.filter((r) => r.status === 'APPROVED').length ?? 0,
@@ -101,23 +103,37 @@ export const Approvals = ({ user }: ApprovalsProps) => {
     refetch();
   };
 
+  const approvalTags =
+    user.role === Role.TEAM_LEADER
+      ? (['צוות שלך', 'אישור ראשון', 'סטטוס בשורה'] as const)
+      : user.role === Role.BRANCH_COORD
+        ? (['ענף', 'תיעדוף', 'הערות'] as const)
+        : (['אישור סופי', 'תיעדוף', 'דחייה'] as const);
+
   return (
     <div className='space-y-4'>
-      <h1 className='text-2xl font-bold text-foreground'>{title}</h1>
+      <ScreenGuide
+        eyebrow='תהליכים'
+        title={title}
+        subtitle='בקשות רישום של משתתפים לקורסים — כרטיס לכל בקשה; הפעולות בתחתית הכרטיס.'
+        tags={approvalTags}
+      />
 
-      {/* Status filter chips */}
-      <div className='flex flex-wrap gap-2'>
+      {/* סינון סטטוס — גלילה אופקית במסכים צרים */}
+      <div className='-mx-1 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden'>
         <button
+          type='button'
           onClick={() => setStatusFilter('')}
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${!statusFilter ? 'bg-foreground text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${!statusFilter ? 'bg-foreground text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
         >
           הכל ({registrations?.length ?? 0})
         </button>
         {Object.entries(STATUS_LABELS).map(([key, label]) => (
           <button
+            type='button'
             key={key}
             onClick={() => setStatusFilter(statusFilter === key ? '' : key)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${statusFilter === key ? 'bg-foreground text-white' : `${STATUS_COLORS[key]} hover:opacity-80`}`}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${statusFilter === key ? 'bg-foreground text-white' : `${STATUS_COLORS[key]} hover:opacity-80`}`}
           >
             {label} ({statusCounts[key as keyof typeof statusCounts]})
           </button>
@@ -138,132 +154,121 @@ export const Approvals = ({ user }: ApprovalsProps) => {
         />
       </div>
 
-      {/* Table */}
-      <div className='rounded-xl border border-border bg-white shadow-sm'>
-        <div className='overflow-x-auto'>
-          <table className='w-full'>
-            <thead>
-              <tr className='border-b border-border bg-muted/30 text-right'>
-                <th className='px-4 py-3 text-xs font-medium text-muted-foreground'>משתתף</th>
-                <th className='px-4 py-3 text-xs font-medium text-muted-foreground'>קורס</th>
-                <th className='px-4 py-3 text-xs font-medium text-muted-foreground'>ענף / צוות</th>
-                <th className='px-4 py-3 text-center text-xs font-medium text-muted-foreground'>
-                  סטטוס
-                </th>
-                <th className='px-4 py-3 text-center text-xs font-medium text-muted-foreground'>
-                  תיעדוף
-                </th>
-                <th className='px-4 py-3 text-xs font-medium text-muted-foreground'>הערות</th>
-                <th className='px-4 py-3 w-32' />
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-border'>
-              {filtered.map((r: CourseRegistration) => {
-                const canTlApprove = user.role === Role.TEAM_LEADER && r.status === 'PENDING_TL';
-                const canCoordApprove =
-                  user.role === Role.BRANCH_COORD && r.status === 'PENDING_COORD';
-                const canBisApprove = user.role === Role.BIS_CDR && r.status === 'PENDING_BIS';
-                return (
-                  <tr key={r.id} className='hover:bg-muted/30'>
-                    <td className='px-4 py-3'>
-                      <p className='text-sm font-medium text-foreground'>{r.user?.name}</p>
-                    </td>
-                    <td className='px-4 py-3'>
-                      <p className='text-sm text-foreground'>{r.courseInstance?.course?.name}</p>
-                      <p className='text-xs text-muted-foreground'>{r.courseInstance?.name}</p>
-                    </td>
-                    <td className='px-4 py-3 text-xs text-muted-foreground'>
-                      {(r.user?.branch as { name: string } | undefined)?.name} /{' '}
+      <div className='rounded-xl border border-border bg-muted/20 px-3 py-3 sm:px-4'>
+        <p className='mb-3 text-center text-xs text-muted-foreground sm:text-right'>
+          {filtered.length} מתוך {registrations?.length ?? 0} בקשות
+        </p>
+        {filtered.length === 0 ? (
+          <p className='py-10 text-center text-sm text-muted-foreground'>אין רישומים תואמים</p>
+        ) : (
+          <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3'>
+            {filtered.map((r: CourseRegistration) => {
+              const canTlApprove = user.role === Role.TEAM_LEADER && r.status === 'PENDING_TL';
+              const canCoordApprove =
+                user.role === Role.BRANCH_COORD && r.status === 'PENDING_COORD';
+              const canBisApprove = user.role === Role.BIS_CDR && r.status === 'PENDING_BIS';
+              const noteLine = r.coordNotes || r.bisNotes || r.rejectionReason || null;
+              return (
+                <div
+                  key={r.id}
+                  className='flex flex-col rounded-xl border border-border bg-white p-4 shadow-sm'
+                >
+                  <div className='min-w-0 flex-1'>
+                    <p className='text-sm font-bold text-foreground'>{r.user?.name}</p>
+                    <p className='mt-1 text-sm text-foreground leading-snug'>
+                      {r.courseInstance?.course?.name}
+                    </p>
+                    <p className='text-xs text-muted-foreground'>{r.courseInstance?.name}</p>
+                    <p className='mt-2 text-xs text-muted-foreground'>
+                      {(r.user?.branch as { name: string } | undefined)?.name ?? '—'} ·{' '}
                       {(r.user?.team as { name: string } | undefined)?.name ?? '—'}
-                    </td>
-                    <td className='px-4 py-3 text-center'>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[r.status]}`}
-                      >
-                        {STATUS_LABELS[r.status]}
-                      </span>
-                    </td>
-                    <td className='px-4 py-3 text-center text-sm font-medium text-foreground'>
-                      {r.coordPriority ?? '—'}
-                    </td>
-                    <td className='max-w-[120px] truncate px-4 py-3 text-xs text-muted-foreground'>
-                      {r.coordNotes || r.bisNotes || r.rejectionReason || '—'}
-                    </td>
-                    <td className='px-4 py-3'>
-                      <div className='flex justify-end gap-1'>
-                        {canTlApprove && (
-                          <>
-                            <button
-                              onClick={() => handleApproveTl(r.id)}
-                              className='rounded bg-emerald-500 px-2 py-1 text-xs text-white hover:bg-emerald-600'
-                            >
-                              אשר
-                            </button>
-                            <button
-                              onClick={() => handleReject(r.id)}
-                              className='rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600'
-                            >
-                              דחה
-                            </button>
-                          </>
-                        )}
-                        {canCoordApprove && (
-                          <>
-                            <button
-                              onClick={() => handlePrioritize(r.id)}
-                              className='rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600'
-                            >
-                              אשר
-                            </button>
-                            <button
-                              onClick={() => handleReject(r.id)}
-                              className='rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600'
-                            >
-                              דחה
-                            </button>
-                          </>
-                        )}
-                        {canBisApprove && (
-                          <>
-                            <button
-                              onClick={() => handleApproveFinal(r.id)}
-                              className='rounded bg-emerald-500 px-2 py-1 text-xs text-white hover:bg-emerald-600'
-                            >
-                              <CheckCircle2 size={12} className='inline' /> אשר
-                            </button>
-                            <button
-                              onClick={() => handleReject(r.id)}
-                              className='rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600'
-                            >
-                              <XCircle size={12} className='inline' /> דחה
-                            </button>
-                          </>
-                        )}
-                        {!canTlApprove &&
-                          !canCoordApprove &&
-                          !canBisApprove &&
-                          r.status !== 'APPROVED' &&
-                          r.status !== 'REJECTED' && (
-                            <Clock size={14} className='text-muted-foreground' />
-                          )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className='px-4 py-8 text-center text-sm text-muted-foreground'>
-                    אין רישומים תואמים
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className='border-t border-border px-4 py-2 text-xs text-muted-foreground'>
-          {filtered.length} מתוך {registrations?.length ?? 0}
-        </div>
+                    </p>
+                  </div>
+                  <div className='mt-3 flex flex-wrap items-center gap-2'>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[r.status]}`}
+                    >
+                      {STATUS_LABELS[r.status]}
+                    </span>
+                    <span className='rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
+                      תיעדוף: {r.coordPriority ?? '—'}
+                    </span>
+                  </div>
+                  {noteLine && (
+                    <p className='mt-2 line-clamp-2 rounded-md bg-muted/50 px-2 py-1.5 text-xs text-muted-foreground'>
+                      {noteLine}
+                    </p>
+                  )}
+                  <div className='mt-4 flex flex-wrap justify-end gap-1.5 border-t border-border pt-3'>
+                    {canTlApprove && (
+                      <>
+                        <button
+                          type='button'
+                          onClick={() => handleApproveTl(r.id)}
+                          className='rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-600'
+                        >
+                          אשר
+                        </button>
+                        <button
+                          type='button'
+                          onClick={() => handleReject(r.id)}
+                          className='rounded-lg bg-red-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-600'
+                        >
+                          דחה
+                        </button>
+                      </>
+                    )}
+                    {canCoordApprove && (
+                      <>
+                        <button
+                          type='button'
+                          onClick={() => handlePrioritize(r.id)}
+                          className='rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600'
+                        >
+                          תעדוף ושלח
+                        </button>
+                        <button
+                          type='button'
+                          onClick={() => handleReject(r.id)}
+                          className='rounded-lg bg-red-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-600'
+                        >
+                          דחה
+                        </button>
+                      </>
+                    )}
+                    {canBisApprove && (
+                      <>
+                        <button
+                          type='button'
+                          onClick={() => handleApproveFinal(r.id)}
+                          className='rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-600'
+                        >
+                          <CheckCircle2 size={12} className='inline' /> אשר סופי
+                        </button>
+                        <button
+                          type='button'
+                          onClick={() => handleReject(r.id)}
+                          className='rounded-lg bg-red-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-600'
+                        >
+                          <XCircle size={12} className='inline' /> דחה
+                        </button>
+                      </>
+                    )}
+                    {!canTlApprove &&
+                      !canCoordApprove &&
+                      !canBisApprove &&
+                      r.status !== 'APPROVED' &&
+                      r.status !== 'REJECTED' && (
+                        <span className='flex items-center gap-1 text-xs text-muted-foreground'>
+                          <Clock size={14} /> אין פעולה בשלב זה
+                        </span>
+                      )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

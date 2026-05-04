@@ -2,6 +2,7 @@ import { FileText } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ScreenGuide } from '../components/ScreenGuide';
 import { useApi } from '../hooks/useApi';
 import type { InfoPage as InfoPageType } from '../lib/api';
 import { api } from '../lib/api';
@@ -18,10 +19,11 @@ export const Info = () => {
     return (
       <div className='space-y-6'>
         <button
+          type='button'
           onClick={() => setSelectedPage(null)}
-          className='text-sm text-muted-foreground hover:text-foreground'
+          className='text-sm font-medium text-primary hover:underline'
         >
-          ← חזרה
+          ← חזרה לרשימת המדריכים
         </button>
         <div className='rounded-xl border border-border bg-white p-8 shadow-sm'>
           <h1 className='mb-4 text-2xl font-bold text-foreground'>{selectedPage.title}</h1>
@@ -35,10 +37,12 @@ export const Info = () => {
 
   return (
     <div className='space-y-6'>
-      <div>
-        <h1 className='text-2xl font-bold text-foreground'>מידע</h1>
-        <p className='mt-1 text-sm text-muted-foreground'>מידע שימושי על קורסים ותהליכים</p>
-      </div>
+      <ScreenGuide
+        eyebrow='מדריכים'
+        title='מידע ועדכונים'
+        subtitle='מדריכים קצרים — בוחרים כרטיס וקוראים.'
+        tags={['קריאה בלבד', `${pages.length} נושאים`]}
+      />
 
       <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
         {pages.map((page) => (

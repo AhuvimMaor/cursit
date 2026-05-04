@@ -2,29 +2,18 @@ import { Role } from './roles';
 
 export type Page =
   | 'dashboard'
-  | 'gantt'
-  | 'courses'
+  | 'courses-hub'
   | 'candidacy'
   | 'approvals'
   | 'my-registrations'
   | 'info'
-  | 'schedule'
   | 'admin';
 
 const ROLE_PAGES: Record<Role, Page[]> = {
-  [Role.BIS_CDR]: [
-    'dashboard',
-    'schedule',
-    'gantt',
-    'courses',
-    'candidacy',
-    'approvals',
-    'info',
-    'admin',
-  ],
-  [Role.BRANCH_COORD]: ['dashboard', 'schedule', 'gantt', 'courses', 'candidacy', 'approvals'],
-  [Role.TEAM_LEADER]: ['dashboard', 'schedule', 'gantt', 'courses', 'candidacy', 'approvals'],
-  [Role.TRAINEE]: ['dashboard', 'schedule', 'courses', 'my-registrations', 'info'],
+  [Role.BIS_CDR]: ['dashboard', 'courses-hub', 'candidacy', 'approvals', 'info', 'admin'],
+  [Role.BRANCH_COORD]: ['dashboard', 'courses-hub', 'candidacy', 'approvals'],
+  [Role.TEAM_LEADER]: ['dashboard', 'courses-hub', 'candidacy', 'approvals'],
+  [Role.TRAINEE]: ['dashboard', 'courses-hub', 'my-registrations', 'info'],
 };
 
 export const getAllowedPages = (role: Role): Page[] => ROLE_PAGES[role];

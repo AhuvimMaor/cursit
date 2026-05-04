@@ -18,6 +18,7 @@ const ROLE_COLORS: Record<Role, string> = {
   [Role.TRAINEE]: 'bg-emerald-100 text-emerald-700',
 };
 
+/** חייב להתאים ל־seed ב־api.ts — אחרת רכז ענף יראה 0 רישומים כשאין רשת */
 const FALLBACK_USERS: AuthUser[] = [
   { id: 1, uniqueId: '1000000', name: 'דוד כהן', role: Role.BIS_CDR },
   {
@@ -25,17 +26,17 @@ const FALLBACK_USERS: AuthUser[] = [
     uniqueId: '2000001',
     name: 'שרה לוי',
     role: Role.BRANCH_COORD,
-    branchId: 1,
-    branch: { id: 1, name: 'ענף טכנולוגיה' },
+    branchId: 2,
+    branch: { id: 2, name: 'ענף טכנולוגיה' },
   },
   {
     id: 3,
     uniqueId: '3000001',
     name: 'נועה מזרחי',
     role: Role.TEAM_LEADER,
-    branchId: 1,
+    branchId: 2,
     teamId: 1,
-    branch: { id: 1, name: 'ענף טכנולוגיה' },
+    branch: { id: 2, name: 'ענף טכנולוגיה' },
     team: { id: 1, name: 'צוות אלפא' },
   },
   {
@@ -43,9 +44,9 @@ const FALLBACK_USERS: AuthUser[] = [
     uniqueId: '4000001',
     name: 'יונתן לוי',
     role: Role.TRAINEE,
-    branchId: 1,
+    branchId: 2,
     teamId: 1,
-    branch: { id: 1, name: 'ענף טכנולוגיה' },
+    branch: { id: 2, name: 'ענף טכנולוגיה' },
     team: { id: 1, name: 'צוות אלפא' },
   },
 ];
@@ -102,10 +103,11 @@ export const Login = ({ onLogin }: LoginProps) => {
                     {HEBREW_ROLES[role]}
                   </p>
                   <div className='space-y-1.5'>
-                    {roleUsers.slice(0, 2).map((user) => {
+                    {roleUsers.map((user) => {
                       const isSelected = selectedId === user.id;
                       return (
                         <button
+                          type='button'
                           key={user.id}
                           onClick={() => handleLogin(user as AuthUser)}
                           disabled={loggingIn}

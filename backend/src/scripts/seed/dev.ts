@@ -1,9 +1,17 @@
+import type { PhaseType } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 const main = async () => {
   console.log('Seeding dev data...');
+
+  const day = (deltaDays: number) => {
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() + deltaDays);
+    return d.toISOString().slice(0, 10);
+  };
 
   // ── Branches ──
   const branches = await Promise.all([
@@ -200,235 +208,523 @@ const main = async () => {
     `Created users: 1 admin, ${coords.length} coords, ${teamLeaders.length} leaders, ${trainees.length} trainees`,
   );
 
-  // ── Courses ──
-  const foundationCourses = await Promise.all([
-    prisma.course.create({
-      data: {
-        name: 'קורס הכשרת מנהלים',
-        description: 'קורס הכשרת מנהלים בכירים. כולל מיונים, הכשרה, והקורס עצמו.',
-        type: 'FOUNDATION',
-        location: 'מרכז הדרכה ראשי',
-        isPublished: true,
-      },
-    }),
-    prisma.course.create({
-      data: {
-        name: 'קורס הכשרה בסיסי',
-        description: 'קורס הכשרה בסיסי למשתתפים חדשים. כולל מיונים ושלבי הכנה.',
-        type: 'FOUNDATION',
-        location: 'מרכז הדרכה ראשי',
-        isPublished: true,
-      },
-    }),
-  ]);
+  // ── Courses (תואם ל־frontend mock — 5 קורסים) ──
+  const cFoundation = await prisma.course.create({
+    data: {
+      name: 'קורס הכשרת מנהלים',
+      description: 'קורס הכשרת מנהלים בכירים',
+      type: 'FOUNDATION',
+      location: 'מרכז הדרכה ראשי',
+      isPublished: true,
+    },
+  });
+  const cCyber = await prisma.course.create({
+    data: {
+      name: 'קורס סייבר מתקדם',
+      description: 'הכשרה מתקדמת בעולם הסייבר',
+      type: 'ADVANCED',
+      requirements: 'סיום קורס בסיסי',
+      gmushHours: 40,
+      location: 'מרכז סייבר',
+      isPublished: true,
+    },
+  });
+  const cGis = await prisma.course.create({
+    data: {
+      name: 'קורס GIS מתקדם',
+      description: 'הכשרה במערכות מידע גיאוגרפי ואנליזה מרחבית',
+      type: 'ADVANCED',
+      requirements: 'היכרות בסיסית עם GIS',
+      gmushHours: 32,
+      location: 'חדר הדרכה 3',
+      isPublished: true,
+    },
+  });
+  const cPython = await prisma.course.create({
+    data: {
+      name: 'קורס Python לאנליסטים',
+      description: 'תכנות Python לצרכי אנליזה ועיבוד נתונים',
+      type: 'ADVANCED',
+      requirements: 'אין דרישות מקדימות',
+      gmushHours: 24,
+      location: 'מעבדת מחשבים',
+      isPublished: true,
+    },
+  });
+  const cLeadership = await prisma.course.create({
+    data: {
+      name: 'קורס ראשי צוותות',
+      description: 'הכשרה לתפקיד ראש צוות',
+      type: 'LEADERSHIP',
+      location: 'מרכז הדרכה ראשי',
+      isPublished: true,
+    },
+  });
 
-  const advancedCourses = await Promise.all([
-    prisma.course.create({
-      data: {
-        name: 'קורס סייבר מתקדם',
-        description: 'הכשרה מתקדמת בעולם הסייבר. כולל תרגול מעשי והתמודדות עם תרחישים אמיתיים.',
-        type: 'ADVANCED',
-        requirements: 'סיום קורס סייבר בסיסי, ניסיון של 6 חודשים לפחות',
-        gmushHours: 40,
-        location: 'מרכז סייבר',
-        isPublished: true,
-      },
-    }),
-    prisma.course.create({
-      data: {
-        name: 'קורס GIS מתקדם',
-        description: 'הכשרה במערכות מידע גיאוגרפי. עבודה עם כלים מתקדמים ואנליזה מרחבית.',
-        type: 'ADVANCED',
-        requirements: 'היכרות בסיסית עם מערכות GIS',
-        gmushHours: 32,
-        location: 'חדר הדרכה 3',
-        isPublished: true,
-      },
-    }),
-    prisma.course.create({
-      data: {
-        name: 'קורס Python לאנליסטים',
-        description: 'תכנות Python לצרכי אנליזה ועיבוד נתונים. כולל Pandas, NumPy ותרגול מעשי.',
-        type: 'ADVANCED',
-        requirements: 'אין דרישות מקדימות',
-        gmushHours: 24,
-        location: 'מעבדת מחשבים',
-        isPublished: true,
-      },
-    }),
-    prisma.course.create({
-      data: {
-        name: 'קורס ניהול פרויקטים',
-        description: 'מתודולוגיות ניהול פרויקטים, Agile ו-Scrum.',
-        type: 'ADVANCED',
-        gmushHours: 16,
-        isPublished: true,
-      },
-    }),
-  ]);
+  const courses = [cFoundation, cCyber, cGis, cPython, cLeadership];
 
-  const leadershipCourses = await Promise.all([
-    prisma.course.create({
-      data: {
-        name: 'קורס ראשי צוותות',
-        description: 'קורס הכשרה לתפקיד ראש צוות. מנהיגות, ניהול אנשים, ותכנון עבודה.',
-        type: 'LEADERSHIP',
-        location: 'מרכז הדרכה ראשי',
-        isPublished: true,
-      },
-    }),
-    prisma.course.create({
-      data: {
-        name: 'קורס מנהלי ביניים',
-        description: 'הכשרה למנהלי ביניים. אסטרטגיה, קבלת החלטות, וניהול צוותות מרובים.',
-        type: 'LEADERSHIP',
-        location: 'מרכז הדרכה ראשי',
-        isPublished: true,
-      },
-    }),
-  ]);
+  type InstSpec = {
+    courseIdx: number;
+    name: string;
+    start: string;
+    end: string;
+    status: 'OPEN' | 'IN_PROGRESS' | 'DRAFT' | 'COMPLETED';
+  };
 
-  console.log(
-    `Created ${foundationCourses.length} foundation + ${advancedCourses.length} advanced + ${leadershipCourses.length} leadership courses`,
+  /** סדר זהה ל־mock ב־api.ts (מחזורים 1–13) */
+  const instanceSpecs: InstSpec[] = [
+    { courseIdx: 0, name: 'מחזור 42', start: '2026-03-01', end: '2026-07-07', status: 'OPEN' },
+    {
+      courseIdx: 1,
+      name: 'מחזור קיץ 2026',
+      start: '2026-06-01',
+      end: '2026-07-15',
+      status: 'OPEN',
+    },
+    { courseIdx: 2, name: 'מחזור 3', start: '2026-05-15', end: '2026-06-20', status: 'OPEN' },
+    { courseIdx: 3, name: 'מחזור 5', start: '2026-07-01', end: '2026-07-25', status: 'OPEN' },
+    {
+      courseIdx: 4,
+      name: 'מחזור 8',
+      start: '2026-04-01',
+      end: '2026-05-18',
+      status: 'IN_PROGRESS',
+    },
+    { courseIdx: 3, name: 'מחזור אביב א׳', start: day(16), end: day(52), status: 'OPEN' },
+    {
+      courseIdx: 1,
+      name: 'מחזור אביב סייבר',
+      start: '2026-04-05',
+      end: '2026-06-15',
+      status: 'OPEN',
+    },
+    {
+      courseIdx: 4,
+      name: 'מחזור ט׳',
+      start: '2026-04-18',
+      end: '2026-06-01',
+      status: 'IN_PROGRESS',
+    },
+    { courseIdx: 0, name: 'מחזור 43', start: '2026-05-05', end: '2026-09-01', status: 'OPEN' },
+    { courseIdx: 3, name: 'מחזור 6', start: '2026-05-25', end: '2026-07-10', status: 'OPEN' },
+    { courseIdx: 2, name: 'מחזור 3ב', start: '2026-06-08', end: '2026-07-22', status: 'OPEN' },
+    { courseIdx: 4, name: 'מחזור י׳', start: '2026-06-20', end: '2026-08-10', status: 'OPEN' },
+    { courseIdx: 1, name: 'מחזור קיץ ב׳', start: '2026-07-08', end: '2026-08-20', status: 'OPEN' },
+    {
+      courseIdx: 1,
+      name: 'מחזור — רישום פתוח עכשיו (א׳)',
+      start: day(45),
+      end: day(120),
+      status: 'OPEN',
+    },
+    {
+      courseIdx: 2,
+      name: 'מחזור — רישום פתוח עכשיו (ב׳)',
+      start: day(50),
+      end: day(110),
+      status: 'OPEN',
+    },
+    {
+      courseIdx: 3,
+      name: 'מחזור — רישום פתוח עכשיו (ג׳)',
+      start: day(40),
+      end: day(95),
+      status: 'OPEN',
+    },
+    {
+      courseIdx: 1,
+      name: 'מחזור נעול (הסתיים)',
+      start: day(-200),
+      end: day(-100),
+      status: 'COMPLETED',
+    },
+    {
+      courseIdx: 2,
+      name: 'מחזור ישן (הסתיים)',
+      start: day(-350),
+      end: day(-250),
+      status: 'COMPLETED',
+    },
+    {
+      courseIdx: 1,
+      name: 'מחזור חורף — ארכיון (הסתיים השנה)',
+      start: day(-90),
+      end: day(-38),
+      status: 'COMPLETED',
+    },
+    {
+      courseIdx: 3,
+      name: 'מחזור מוקדם — ארכיון (הסתיים השנה)',
+      start: day(-70),
+      end: day(-28),
+      status: 'COMPLETED',
+    },
+  ];
+
+  const instances = await Promise.all(
+    instanceSpecs.map((spec) =>
+      prisma.courseInstance.create({
+        data: {
+          courseId: courses[spec.courseIdx].id,
+          name: spec.name,
+          startDate: new Date(spec.start),
+          endDate: new Date(spec.end),
+          status: spec.status,
+        },
+      }),
+    ),
   );
 
-  // ── Course Instances ──
-  const mgrInstance = await prisma.courseInstance.create({
-    data: {
-      courseId: foundationCourses[0].id,
-      name: 'מחזור 42',
-      startDate: new Date('2026-03-01'),
-      endDate: new Date('2026-07-07'),
-      status: 'OPEN',
+  const I = (idx: number) => instances[idx].id;
+
+  type PhaseRow = {
+    instIdx: number;
+    name: string;
+    phaseType: PhaseType;
+    start: string;
+    end: string;
+    sortOrder: number;
+  };
+
+  const phaseRows: PhaseRow[] = [
+    {
+      instIdx: 0,
+      name: 'הגשת מועמדות',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-03-01',
+      end: '2026-03-15',
+      sortOrder: 1,
     },
-  });
-
-  const tlInstance = await prisma.courseInstance.create({
-    data: {
-      courseId: foundationCourses[1].id,
-      name: 'מחזור 8',
-      startDate: new Date('2026-04-01'),
-      endDate: new Date('2026-05-18'),
-      status: 'OPEN',
+    {
+      instIdx: 0,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-05-01',
+      end: '2026-06-30',
+      sortOrder: 2,
     },
-  });
-
-  const cyberInstance = await prisma.courseInstance.create({
-    data: {
-      courseId: advancedCourses[0].id,
-      name: 'מחזור קיץ 2026',
-      startDate: new Date('2026-06-01'),
-      endDate: new Date('2026-07-15'),
-      status: 'OPEN',
+    {
+      instIdx: 1,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-05-20',
+      end: '2026-05-28',
+      sortOrder: 1,
     },
-  });
-
-  const gisInstance = await prisma.courseInstance.create({
-    data: {
-      courseId: advancedCourses[1].id,
-      name: 'מחזור 3',
-      startDate: new Date('2026-05-15'),
-      endDate: new Date('2026-06-20'),
-      status: 'OPEN',
+    {
+      instIdx: 1,
+      name: 'מיונים ואישורים',
+      phaseType: 'TRYOUTS',
+      start: '2026-05-29',
+      end: '2026-06-05',
+      sortOrder: 2,
     },
-  });
-
-  const pythonInstance = await prisma.courseInstance.create({
-    data: {
-      courseId: advancedCourses[2].id,
-      name: 'מחזור 5',
-      startDate: new Date('2026-07-01'),
-      endDate: new Date('2026-07-25'),
-      status: 'OPEN',
+    {
+      instIdx: 1,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-06-06',
+      end: '2026-07-15',
+      sortOrder: 3,
     },
-  });
+    {
+      instIdx: 2,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-04-20',
+      end: '2026-05-05',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 2,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-05-15',
+      end: '2026-06-20',
+      sortOrder: 2,
+    },
+    {
+      instIdx: 3,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-07-01',
+      end: '2026-07-25',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 5,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: day(-14),
+      end: day(14),
+      sortOrder: 1,
+    },
+    {
+      instIdx: 5,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: day(16),
+      end: day(52),
+      sortOrder: 2,
+    },
+    {
+      instIdx: 6,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-04-05',
+      end: '2026-04-14',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 6,
+      name: 'מיונים',
+      phaseType: 'TRYOUTS',
+      start: '2026-04-16',
+      end: '2026-04-28',
+      sortOrder: 2,
+    },
+    {
+      instIdx: 7,
+      name: 'הכנת צוות מוביל',
+      phaseType: 'STAFF_PREP',
+      start: '2026-04-18',
+      end: '2026-05-01',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 7,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-05-03',
+      end: '2026-06-01',
+      sortOrder: 2,
+    },
+    {
+      instIdx: 8,
+      name: 'הגשת מועמדות',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-05-05',
+      end: '2026-05-18',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 8,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-06-01',
+      end: '2026-08-30',
+      sortOrder: 2,
+    },
+    {
+      instIdx: 9,
+      name: 'פתיחת רישום',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-05-25',
+      end: '2026-06-02',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 9,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-06-05',
+      end: '2026-07-08',
+      sortOrder: 2,
+    },
+    {
+      instIdx: 10,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-06-08',
+      end: '2026-06-15',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 10,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-06-18',
+      end: '2026-07-20',
+      sortOrder: 2,
+    },
+    {
+      instIdx: 11,
+      name: 'הגשת מועמדות',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-06-20',
+      end: '2026-06-28',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 11,
+      name: 'הכשרה',
+      phaseType: 'COMMANDER_COURSE',
+      start: '2026-07-01',
+      end: '2026-08-05',
+      sortOrder: 2,
+    },
+    {
+      instIdx: 12,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: '2026-07-08',
+      end: '2026-07-15',
+      sortOrder: 1,
+    },
+    {
+      instIdx: 12,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: '2026-07-18',
+      end: '2026-08-18',
+      sortOrder: 2,
+    },
+    {
+      instIdx: 13,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: day(-5),
+      end: day(14),
+      sortOrder: 1,
+    },
+    {
+      instIdx: 13,
+      name: 'מיונים',
+      phaseType: 'TRYOUTS',
+      start: day(16),
+      end: day(28),
+      sortOrder: 2,
+    },
+    {
+      instIdx: 13,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: day(45),
+      end: day(115),
+      sortOrder: 3,
+    },
+    {
+      instIdx: 14,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: day(0),
+      end: day(21),
+      sortOrder: 1,
+    },
+    {
+      instIdx: 14,
+      name: 'מיונים',
+      phaseType: 'TRYOUTS',
+      start: day(23),
+      end: day(35),
+      sortOrder: 2,
+    },
+    {
+      instIdx: 14,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: day(48),
+      end: day(108),
+      sortOrder: 3,
+    },
+    {
+      instIdx: 15,
+      name: 'פתיחת רישום למחזור',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: day(-3),
+      end: day(12),
+      sortOrder: 1,
+    },
+    {
+      instIdx: 15,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: day(18),
+      end: day(90),
+      sortOrder: 2,
+    },
+    {
+      instIdx: 16,
+      name: 'פתיחת רישום (היסטוריה)',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: day(-190),
+      end: day(-175),
+      sortOrder: 1,
+    },
+    {
+      instIdx: 16,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: day(-172),
+      end: day(-102),
+      sortOrder: 2,
+    },
+    {
+      instIdx: 17,
+      name: 'פתיחת רישום (היסטוריה)',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: day(-340),
+      end: day(-310),
+      sortOrder: 1,
+    },
+    {
+      instIdx: 17,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: day(-305),
+      end: day(-252),
+      sortOrder: 2,
+    },
+    {
+      instIdx: 18,
+      name: 'פתיחת רישום (היסטוריה)',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: day(-115),
+      end: day(-95),
+      sortOrder: 1,
+    },
+    {
+      instIdx: 18,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: day(-90),
+      end: day(-38),
+      sortOrder: 2,
+    },
+    {
+      instIdx: 19,
+      name: 'פתיחת רישום (היסטוריה)',
+      phaseType: 'CANDIDACY_SUBMISSION',
+      start: day(-100),
+      end: day(-78),
+      sortOrder: 1,
+    },
+    {
+      instIdx: 19,
+      name: 'לימודי המחזור (בקורס)',
+      phaseType: 'COURSE',
+      start: day(-70),
+      end: day(-28),
+      sortOrder: 2,
+    },
+  ];
 
-  console.log('Created 5 course instances');
-
-  // ── Gantt Phases ──
   await prisma.coursePhase.createMany({
-    data: [
-      {
-        courseInstanceId: mgrInstance.id,
-        name: 'הגשת מועמדות',
-        phaseType: 'CANDIDACY_SUBMISSION',
-        startDate: new Date('2026-03-01'),
-        endDate: new Date('2026-03-15'),
-        sortOrder: 1,
-      },
-      {
-        courseInstanceId: mgrInstance.id,
-        name: 'מיונים',
-        phaseType: 'TRYOUTS',
-        startDate: new Date('2026-03-20'),
-        endDate: new Date('2026-03-25'),
-        sortOrder: 2,
-      },
-      {
-        courseInstanceId: mgrInstance.id,
-        name: 'הכשרה',
-        phaseType: 'COMMANDER_COURSE',
-        startDate: new Date('2026-04-01'),
-        endDate: new Date('2026-04-15'),
-        sortOrder: 3,
-      },
-      {
-        courseInstanceId: mgrInstance.id,
-        name: 'הכנת צוות',
-        phaseType: 'STAFF_PREP',
-        startDate: new Date('2026-04-16'),
-        endDate: new Date('2026-04-20'),
-        sortOrder: 4,
-      },
-      {
-        courseInstanceId: mgrInstance.id,
-        name: 'הקורס',
-        phaseType: 'COURSE',
-        startDate: new Date('2026-05-01'),
-        endDate: new Date('2026-06-30'),
-        sortOrder: 5,
-      },
-      {
-        courseInstanceId: mgrInstance.id,
-        name: 'שבוע סיכומים',
-        phaseType: 'SUMMARY_WEEK',
-        startDate: new Date('2026-07-01'),
-        endDate: new Date('2026-07-07'),
-        sortOrder: 6,
-      },
-    ],
+    data: phaseRows.map((p) => ({
+      courseInstanceId: I(p.instIdx),
+      name: p.name,
+      phaseType: p.phaseType,
+      startDate: new Date(p.start),
+      endDate: new Date(p.end),
+      sortOrder: p.sortOrder,
+    })),
   });
 
-  await prisma.coursePhase.createMany({
-    data: [
-      {
-        courseInstanceId: tlInstance.id,
-        name: 'רישום',
-        phaseType: 'CANDIDACY_SUBMISSION',
-        startDate: new Date('2026-04-01'),
-        endDate: new Date('2026-04-20'),
-        sortOrder: 1,
-      },
-      {
-        courseInstanceId: tlInstance.id,
-        name: 'הקורס',
-        phaseType: 'COURSE',
-        startDate: new Date('2026-05-01'),
-        endDate: new Date('2026-05-15'),
-        sortOrder: 2,
-      },
-      {
-        courseInstanceId: tlInstance.id,
-        name: 'סיכום',
-        phaseType: 'SUMMARY_WEEK',
-        startDate: new Date('2026-05-16'),
-        endDate: new Date('2026-05-18'),
-        sortOrder: 3,
-      },
-    ],
-  });
+  const mgrInstance = instances[0];
 
-  console.log('Created Gantt phases');
+  console.log(
+    `Created ${courses.length} courses, ${instances.length} instances, ${phaseRows.length} phases`,
+  );
 
   // ── Candidacies ──
   await prisma.commandCandidacy.createMany({
@@ -464,12 +760,12 @@ const main = async () => {
 
   console.log('Created 3 sample candidacies');
 
-  // ── Registrations ──
+  // ── Registrations (מחזורים מתקדמים + דוגמאות על מחזורים נוספים — כולם רואים אותה קטלוג) ──
   await prisma.courseRegistration.createMany({
     data: [
-      { courseInstanceId: cyberInstance.id, userId: trainees[0].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(1), userId: trainees[0].id, status: 'PENDING_TL' },
       {
-        courseInstanceId: cyberInstance.id,
+        courseInstanceId: I(1),
         userId: trainees[3].id,
         status: 'PENDING_BIS',
         coordApprovedById: coords[0].id,
@@ -478,7 +774,7 @@ const main = async () => {
         coordNotes: 'עדיפות גבוהה. מתאים.',
       },
       {
-        courseInstanceId: gisInstance.id,
+        courseInstanceId: I(2),
         userId: trainees[5].id,
         status: 'APPROVED',
         coordApprovedById: coords[1].id,
@@ -489,16 +785,30 @@ const main = async () => {
         bisNotes: 'מאושר.',
       },
       {
-        courseInstanceId: pythonInstance.id,
+        courseInstanceId: I(3),
         userId: trainees[8].id,
         status: 'REJECTED',
         rejectionReason: 'אין מקום במחזור הנוכחי. נא לנסות שוב במחזור הבא.',
       },
-      { courseInstanceId: gisInstance.id, userId: trainees[2].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(2), userId: trainees[2].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(5), userId: trainees[1].id, status: 'PENDING_COORD' },
+      {
+        courseInstanceId: I(6),
+        userId: trainees[4].id,
+        status: 'PENDING_BIS',
+        coordApprovedById: coords[0].id,
+        coordApprovedAt: new Date(),
+        coordPriority: 2,
+        coordNotes: 'מומלץ — דמו',
+      },
+      { courseInstanceId: I(7), userId: trainees[0].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(9), userId: trainees[3].id, status: 'PENDING_COORD' },
+      { courseInstanceId: I(10), userId: trainees[1].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(12), userId: trainees[2].id, status: 'APPROVED' },
     ],
   });
 
-  console.log('Created 5 sample registrations');
+  console.log('Created sample registrations across instances');
 
   // ── Info Pages ──
   await prisma.infoPage.createMany({

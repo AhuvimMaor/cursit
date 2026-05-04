@@ -12,6 +12,7 @@ import {
 import { useCallback, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ScreenGuide } from '../components/ScreenGuide';
 import { useApi } from '../hooks/useApi';
 import type { CourseRegistration, User } from '../lib/api';
 import { api } from '../lib/api';
@@ -20,9 +21,10 @@ import { Role } from '../lib/roles';
 
 type CoursesProps = {
   user: AuthUser;
+  embedded?: boolean;
 };
 
-export const Courses = ({ user }: CoursesProps) => {
+export const Courses = ({ user, embedded }: CoursesProps) => {
   const fetcher = useCallback(() => api.getCourses(), []);
   const regFetcher = useCallback(
     () => (user.role === Role.TRAINEE ? api.getMyRegistrations() : Promise.resolve([])),
@@ -50,19 +52,34 @@ export const Courses = ({ user }: CoursesProps) => {
         ? 'bg-purple-100 text-purple-700'
         : 'bg-emerald-100 text-emerald-700';
 
+  const catalogTags = isTrainee
+    ? (['מתקדמים', 'רישום', 'סטטוס ב״הרישומים שלי״'] as const)
+    : (['יסוד', 'מתקדם', 'ניהול', 'מחזורים'] as const);
+
   return (
-    <div className='space-y-8'>
-      <div>
-        <h1 className='text-2xl font-bold text-foreground'>קטלוג קורסים</h1>
-        <p className='mt-1 text-sm text-muted-foreground'>
-          {isTrainee ? 'קורסים מתקדמים פתוחים לרישום' : `${displayed.length} קורסים`}
-        </p>
-      </div>
+    <div className={embedded ? 'space-y-6' : 'space-y-8'}>
+      {!embedded && (
+        <ScreenGuide
+          eyebrow='קורסים'
+          title='קטלוג קורסים'
+          subtitle={
+            isTrainee
+              ? `${displayed.length} קורסים מתקדמים — בחירת מחזור ושליחת בקשה.`
+              : `${displayed.length} קורסים במערכת — לפי סוג ומחזור.`
+          }
+          tags={catalogTags}
+        />
+      )}
 
       {!isTrainee && foundation.length > 0 && (
         <div>
-          <h2 className='mb-3 text-lg font-semibold text-foreground'>קורסי יסוד</h2>
-          <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+          <h2 className='mb-3 flex flex-wrap items-baseline gap-2 text-lg font-semibold text-foreground'>
+            קורסי יסוד
+            <span className='rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-muted-foreground'>
+              {foundation.length}
+            </span>
+          </h2>
+          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3'>
             {foundation.map((c) => (
               <CourseCard
                 key={c.id}
@@ -78,8 +95,13 @@ export const Courses = ({ user }: CoursesProps) => {
 
       {!isTrainee && leadership.length > 0 && (
         <div>
-          <h2 className='mb-3 text-lg font-semibold text-foreground'>קורסים לניהול</h2>
-          <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+          <h2 className='mb-3 flex flex-wrap items-baseline gap-2 text-lg font-semibold text-foreground'>
+            קורסים לניהול
+            <span className='rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-muted-foreground'>
+              {leadership.length}
+            </span>
+          </h2>
+          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3'>
             {leadership.map((c) => (
               <CourseCard
                 key={c.id}
@@ -98,9 +120,14 @@ export const Courses = ({ user }: CoursesProps) => {
 
       <div>
         {!isTrainee && (
-          <h2 className='mb-3 text-lg font-semibold text-foreground'>קורסים מתקדמים</h2>
+          <h2 className='mb-3 flex flex-wrap items-baseline gap-2 text-lg font-semibold text-foreground'>
+            קורסים מתקדמים
+            <span className='rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-muted-foreground'>
+              {advanced.length}
+            </span>
+          </h2>
         )}
-        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3'>
           {advanced.map((c) => (
             <CourseCard
               key={c.id}
@@ -309,7 +336,7 @@ function CourseCard({
 }
 
 // ── Instance Participants ──
-function InstanceParticipants({
+export function InstanceParticipants({
   instanceId,
   instanceName,
 }: {

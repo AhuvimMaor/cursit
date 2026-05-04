@@ -2,6 +2,7 @@ import { Loader2, Plus, Save, Search, X } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ScreenGuide } from '../components/ScreenGuide';
 import { useApi } from '../hooks/useApi';
 import type { Branch, Course, CourseInstance, EventLog, User } from '../lib/api';
 import { api } from '../lib/api';
@@ -21,7 +22,12 @@ export const Admin = () => {
 
   return (
     <div className='space-y-6'>
-      <h1 className='text-2xl font-bold text-foreground'>ניהול מערכת</h1>
+      <ScreenGuide
+        eyebrow='ניהול'
+        title='ניהול מערכת'
+        subtitle='משתמשים, קורסים, מבנה ארגוני ויומן פעולות — הכל בטאבים למטה.'
+        tags={['משתמשים', 'קורסים', 'ענפים', 'יומן']}
+      />
 
       <div className='flex gap-1 rounded-lg bg-muted p-1'>
         {tabs.map((t) => (
