@@ -42,9 +42,10 @@ COPY backend/package*.json ./backend/
 
 RUN npm ci --omit=dev --ignore-scripts --workspaces
 
-COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/backend/prisma ./backend/prisma
-COPY --from=builder /app/backend/node_modules/.prisma ./backend/node_modules/.prisma
+RUN npx prisma generate --schema=backend/prisma/schema.prisma
+
+COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/shared/dist ./shared/dist
 COPY --from=builder /app/frontend/dist ./frontend/dist
 

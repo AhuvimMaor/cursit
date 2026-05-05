@@ -1,0 +1,67 @@
+# Dokploy deployment — app + Postgres on `dokploy-network`.
+#
+# Docs: https://docs.dokploy.com/docs/core/docker-compose
+#
+# In Dokploy: Project → New Service → Compose → Docker Compose → connect this Git repo,
+# branch (e.g. main), Compose path: `docker-compose.dokploy.yml`.
+#
+# Private repos — pick one:
+#   • Settings → Git → GitHub → Create GitHub App (if github.com/settings/apps/manifest works).
+#   • Compose provider “Git”: SSH URL `git@github.com:OWNER/REPO.git` + Dokploy SSH key whose
+#     public half is added as a read-only Deploy key on the repo (needs repo admin).
+#   • Compose provider “Git”: HTTPS URL with a PAT (rotate after switching methods):
+#       https://x-access-token:<GITHUB_PAT>@github.com/OWNER/REPO.git
+#     PAT must include Contents: Read on that repo (fine‑grained) or `repo` (classic).
+#
+# Environment (UI “Environment” tab — written to `.env` next to the compose file):
+#   POSTGRES_PASSWORD  required — DB password for user `cursit`
+#   DATABASE_URL       required — postgresql://cursit:<PASSWORD>@db:5432/cursit?schema=public
+#     (URL-encode special characters in the password)
+#
+# Expose HTTPS: Domains tab → service `app` → port 8000 (recommended; no Traefik labels needed).
+# Do not add `container_name` (Dokploy logging/metrics).
+#
+# Optional: seed demo data once (replace container name from `docker ps`):
+#   docker exec -it <app_container> npm run seed:dev --workspace=backend
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cursit
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: cursit
+    volumes:
+      - coursit_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cursit']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - dokploy-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: production
+      PORT: 8000
+    command: sh -c "npm run prisma:deploy --workspace=backend && npm start --workspace=backend"
+    networks:
+      - dokploy-network
+
+volumes:
+  coursit_pgdata:
+
+networks:
+  dokploy-network:
+    external: true

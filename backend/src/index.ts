@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { createServer, startServer } from './server.js';
 
 const main = async () => {
-  const fastify = createServer();
+  const fastify = await createServer();
   await startServer(fastify);
 };
 
