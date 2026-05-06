@@ -1,6 +1,7 @@
 import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 
+import { ConfirmDialog } from './ConfirmDialog';
 import type { CoursePhase } from '../lib/api';
 import { api } from '../lib/api';
 import {
@@ -67,15 +68,16 @@ export const CourseInstancePhasesPanel = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPhase, setEditingPhase] = useState<CoursePhase | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const handleDelete = async (phaseId: number) => {
-    if (!confirm('למחוק שלב זה?')) return;
     setDeleting(phaseId);
     try {
       await api.deletePhase(phaseId);
       onRefresh();
     } finally {
       setDeleting(null);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -126,7 +128,7 @@ export const CourseInstancePhasesPanel = ({
 
       {showSectionTitles && sortedPhases.length > 0 && (
         <div>
-          <p className='text-xs font-semibold text-foreground'>לוח זמנים וגאנט — שלבי המחזור</p>
+          <p className='text-xs font-semibold text-foreground'>לוח זמנים וגאנט - שלבי המחזור</p>
           <p className='text-[11px] text-muted-foreground'>
             כל ריבוע הוא שלב; צבע מסמן סוג. מנהל מערכת יכול לערוך.
           </p>
@@ -136,7 +138,7 @@ export const CourseInstancePhasesPanel = ({
       {sortedPhases.length === 0 && !showAddForm ? (
         <p className='rounded-lg border border-dashed border-border bg-muted/20 py-6 text-center text-xs text-muted-foreground'>
           אין שלבים מוגדרים למחזור זה
-          {isAdmin ? ' — לחץ &quot;שלב&quot; כדי להוסיף' : ''}
+          {isAdmin ? ' - לחץ &quot;שלב&quot; כדי להוסיף' : ''}
         </p>
       ) : (
         <ul className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3'>
@@ -209,7 +211,7 @@ export const CourseInstancePhasesPanel = ({
                       <button
                         type='button'
                         title='מחיקה'
-                        onClick={() => handleDelete(phase.id)}
+                        onClick={() => setConfirmDeleteId(phase.id)}
                         disabled={deleting === phase.id}
                         className='rounded-md p-1.5 text-muted-foreground transition hover:bg-red-50 hover:text-red-600'
                       >
@@ -227,6 +229,15 @@ export const CourseInstancePhasesPanel = ({
           })}
         </ul>
       )}
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        onConfirm={() => confirmDeleteId !== null && handleDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+        title='מחיקת שלב'
+        message='האם למחוק שלב זה? פעולה זו אינה הפיכה.'
+        confirmLabel='מחק'
+        variant='danger'
+      />
     </div>
   );
 };

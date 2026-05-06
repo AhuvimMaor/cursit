@@ -1,0 +1,17 @@
+project_name: Bisli
+project_type: web-app
+project_level: 2
+user_name: Maor Ahuvim
+user_skill_level: advanced
+communication_language: Hebrew
+document_output_language: English
+planning_artifacts: ./planning-artifacts
+implementation_artifacts: ./implementation-artifacts
+project_knowledge: ./docs
+
+description: |
+  Military training management system for IDF Unit 8200.
+  Manages course catalog, registrations, approval chains,
+  candidacy for command courses, file uploads, and budget tracking.
+  Hebrew RTL interface. Fastify + Prisma + PostgreSQL backend,
+  React + Vite + Tailwind frontend.

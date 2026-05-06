@@ -60,7 +60,7 @@ export const Gantt = ({ user, embedded }: GanttProps) => {
         <ScreenGuide
           eyebrow='תכנון'
           title='גאנט קורסים'
-          subtitle='לכל קורס כרטיס; השלבים בתוך הכרטיס בריבועים — קל לעבור עליהם ולהשוות.'
+          subtitle='לכל קורס כרטיס; השלבים בתוך הכרטיס בריבועים - קל לעבור עליהם ולהשוות.'
           tags={
             isAdmin
               ? (['מחזורים', 'עריכת שלבים', 'צבעי סוג'] as const)

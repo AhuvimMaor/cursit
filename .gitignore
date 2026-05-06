@@ -32,6 +32,10 @@ backend/.env
 planning.md
 LEARNING_GUIDE.md
 
+# Uploads (local dev storage)
+backend/uploads/
+uploads/
+
 # Logs
 logs
 *.log

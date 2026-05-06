@@ -204,8 +204,8 @@ function TeamLeaderDashboard({
         title={`שלום, ${user.name}`}
         subtitle={
           user.team?.name
-            ? `ראש צוות — ${user.team.name}: מועמדויות ומועדים במבט אחד.`
-            : 'ראש צוות — מועמדויות ומועדים במבט אחד.'
+            ? `ראש צוות - ${user.team.name}: מועמדויות ומועדים במבט אחד.`
+            : 'ראש צוות - מועמדויות ומועדים במבט אחד.'
         }
         tags={['מועמדויות', 'מועדים', 'אישורים']}
       />
@@ -327,10 +327,10 @@ function CoordDashboard({
     <div className='space-y-8'>
       <ScreenGuide
         eyebrow='סקירה'
-        title='לוח בקרה — רכז ענף'
+        title='לוח בקרה - רכז ענף'
         subtitle={
           user.branch?.name
-            ? `${user.branch.name} — רישומים ומועמדויות שדורשים טיפול.`
+            ? `${user.branch.name} - רישומים ומועמדויות שדורשים טיפול.`
             : 'רישומים ומועמדויות שדורשים טיפול.'
         }
         tags={['תיעדוף', 'מועמדויות', 'קטלוג']}
@@ -428,8 +428,8 @@ function AdminDashboard({ onNavigate }: { onNavigate: (page: Page) => void }) {
     <div className='space-y-8'>
       <ScreenGuide
         eyebrow='סקירה'
-        title='לוח בקרה — מנהל מערכת'
-        subtitle='אישור רישום לקורס, מועמדות לפיקוד, וקורסים ולוחות — לחיצה על כרטיס מעבירה למסך המתאים.'
+        title='לוח בקרה - מנהל מערכת'
+        subtitle='אישור רישום לקורס, מועמדות לפיקוד, וקורסים ולוחות - לחיצה על כרטיס מעבירה למסך המתאים.'
         tags={['רישום לקורס', 'מועמדות לפיקוד', 'קורסים ולוחות']}
       />
 

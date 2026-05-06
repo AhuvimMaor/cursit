@@ -18,7 +18,7 @@ const API_BASE =
     ? normalizeApiBase(import.meta.env.VITE_API_BASE_URL)
     : '/api';
 
-/** תאריכי דמה יחסיים ל״היום״ (טעינת המודול) — טווח רישום פעיל והיסטוריה */
+/** תאריכי דמה יחסיים ל״היום״ (טעינת המודול) - טווח רישום פעיל והיסטוריה */
 const mockDayOffset = (deltaDays: number): string => {
   const d = new Date();
   d.setHours(12, 0, 0, 0);
@@ -201,7 +201,7 @@ const seedUsers: User[] = [
     branch: { id: 3, name: 'ענף תקשוב' },
     isActive: true,
   },
-  /* משתתפים בענף טכנולוגיה — דמו לרכז ענף */
+  /* משתתפים בענף טכנולוגיה - דמו לרכז ענף */
   {
     id: 17,
     uniqueId: '4010001',
@@ -500,7 +500,7 @@ const seedInstances: CourseInstance[] = [
     id: 6,
     courseId: 4,
     name: 'מחזור אביב א׳',
-    /** מסונכרן לשלב COURSE (שלב 10) — כדי שתאריכי הכרטיס יתאימו לגאנט */
+    /** מסונכרן לשלב COURSE (שלב 10) - כדי שתאריכי הכרטיס יתאימו לגאנט */
     startDate: mockDayOffset(14),
     endDate: mockDayOffset(52),
     status: 'OPEN',
@@ -564,7 +564,7 @@ const seedInstances: CourseInstance[] = [
   {
     id: 14,
     courseId: 2,
-    name: 'מחזור — רישום פתוח עכשיו (א׳)',
+    name: 'מחזור - רישום פתוח עכשיו (א׳)',
     startDate: mockDayOffset(45),
     endDate: mockDayOffset(120),
     status: 'OPEN',
@@ -572,7 +572,7 @@ const seedInstances: CourseInstance[] = [
   {
     id: 15,
     courseId: 3,
-    name: 'מחזור — רישום פתוח עכשיו (ב׳)',
+    name: 'מחזור - רישום פתוח עכשיו (ב׳)',
     startDate: mockDayOffset(50),
     endDate: mockDayOffset(110),
     status: 'OPEN',
@@ -580,7 +580,7 @@ const seedInstances: CourseInstance[] = [
   {
     id: 16,
     courseId: 4,
-    name: 'מחזור — רישום פתוח עכשיו (ג׳)',
+    name: 'מחזור - רישום פתוח עכשיו (ג׳)',
     startDate: mockDayOffset(40),
     endDate: mockDayOffset(95),
     status: 'OPEN',
@@ -604,7 +604,7 @@ const seedInstances: CourseInstance[] = [
   {
     id: 19,
     courseId: 2,
-    name: 'מחזור חורף — ארכיון (הסתיים השנה)',
+    name: 'מחזור חורף - ארכיון (הסתיים השנה)',
     startDate: mockDayOffset(-90),
     endDate: mockDayOffset(-38),
     status: 'COMPLETED',
@@ -612,7 +612,7 @@ const seedInstances: CourseInstance[] = [
   {
     id: 20,
     courseId: 4,
-    name: 'מחזור מוקדם — ארכיון (הסתיים השנה)',
+    name: 'מחזור מוקדם - ארכיון (הסתיים השנה)',
     startDate: mockDayOffset(-70),
     endDate: mockDayOffset(-28),
     status: 'COMPLETED',
@@ -1300,7 +1300,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     bisNotes: null,
     rejectionReason: null,
   },
-  /* —— ענף טכנולוגיה (branchId 2): דמו לרכז ענף — כל סטטוסי רישום —— */
+  /* —— ענף טכנולוגיה (branchId 2): דמו לרכז ענף - כל סטטוסי רישום —— */
   {
     id: 8,
     courseInstanceId: 4,
@@ -1319,7 +1319,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     status: 'PENDING_BIS',
     formData: null,
     coordPriority: 2,
-    coordNotes: 'הועבר לאישור סופי — עדיפות בינונית',
+    coordNotes: 'הועבר לאישור סופי - עדיפות בינונית',
     bisNotes: null,
     rejectionReason: null,
   },
@@ -1378,7 +1378,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     bisNotes: null,
     rejectionReason: null,
   },
-  /* משתתפים נוספים בענף 2 — רישום לכל אחד (דמו לרכז) */
+  /* משתתפים נוספים בענף 2 - רישום לכל אחד (דמו לרכז) */
   {
     id: 15,
     courseInstanceId: 2,
@@ -1408,7 +1408,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     status: 'PENDING_BIS',
     formData: null,
     coordPriority: 2,
-    coordNotes: 'מומלץ — ממתין לאישור סופי',
+    coordNotes: 'מומלץ - ממתין לאישור סופי',
     bisNotes: null,
     rejectionReason: null,
   },
@@ -1579,7 +1579,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
   },
 ];
 
-/** רישומים חסרים (משתמש×מחזור) לענף טכנולוגיה — ממלא את הדמו לרכז ענף בלי כפילויות */
+/** רישומים חסרים (משתמש×מחזור) לענף טכנולוגיה - ממלא את הדמו לרכז ענף בלי כפילויות */
 const buildBranchRegistrationGaps = (
   core: CourseRegistration[],
   startId: number,
@@ -1591,7 +1591,7 @@ const buildBranchRegistrationGaps = (
     'APPROVED',
     'REJECTED',
   ];
-  /** בלי 33 (אור לבנון) — נשאר בלי רישומי גאפ כדי לאפשר בדיקת ״הירשם״ ידנית */
+  /** בלי 33 (אור לבנון) - נשאר בלי רישומי גאפ כדי לאפשר בדיקת ״הירשם״ ידנית */
   const branchTraineeIds = [
     4, 5, 12, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34,
   ];
@@ -1676,7 +1676,7 @@ const seedCandidaciesCore: CommandCandidacy[] = [
   },
 ];
 
-/** מועמדויות נוספות בענף 2 — דמו לרכז ענף */
+/** מועמדויות נוספות בענף 2 - דמו לרכז ענף */
 const seedCandidaciesExtra: CommandCandidacy[] = Array.from({ length: 16 }, (_, i) => {
   const statuses: CommandCandidacy['status'][] = [
     'PENDING',
@@ -1705,7 +1705,7 @@ const seedCandidaciesExtra: CommandCandidacy[] = Array.from({ length: 16 }, (_, 
     candidateId,
     submittedById: i % 2 === 0 ? 3 : 8,
     status,
-    motivation: `רצון להתקדם לקורס פיקוד — בקשה ${i + 1}`,
+    motivation: `רצון להתקדם לקורס פיקוד - בקשה ${i + 1}`,
     commanderNotes: 'מומלץ מהשטח',
     reviewNotes: status === 'APPROVED' ? 'אושר בדיקה' : status === 'REJECTED' ? 'נדחה בדמו' : null,
     reviewedById: status === 'APPROVED' || status === 'REJECTED' ? 1 : null,
@@ -2376,6 +2376,23 @@ export type CourseRegistration = {
   courseInstance?: CourseInstance & { course?: Course };
 };
 
+export type AttachedFile = {
+  id: number;
+  registrationId: number | null;
+  candidacyId: number | null;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  storagePath: string;
+  uploadedById: number;
+  uploadedBy?: { name: string };
+  expiresAt: string | null;
+  createdAt: string;
+};
+
+export type RegistrationFile = AttachedFile;
+
 export type InfoPage = {
   id: number;
   slug: string;
@@ -2544,6 +2561,28 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ rejectionReason }),
     }),
+
+  // Files
+  getFiles: (entityType: 'registration' | 'candidacy', entityId: number) =>
+    fetchJson<AttachedFile[]>(`/files/list/${entityType}/${entityId}`),
+  getRegistrationFiles: (registrationId: number) =>
+    fetchJson<AttachedFile[]>(`/files/list/registration/${registrationId}`),
+  uploadFile: async (entityType: 'registration' | 'candidacy', entityId: number, file: File): Promise<AttachedFile> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const user = JSON.parse(localStorage.getItem('bisli_user') || '{}');
+    const res = await fetch(`${API_BASE}/files/upload/${entityType}/${entityId}`, {
+      method: 'POST',
+      headers: { 'x-user-id': String(user.id || '') },
+      body: formData,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  getFileDownloadUrl: (fileId: number) => `${API_BASE}/files/download/${fileId}`,
+  getFileViewUrl: (fileId: number) => `${API_BASE}/files/view/${fileId}`,
+  deleteFile: (fileId: number) =>
+    fetchJson<void>(`/files/${fileId}`, { method: 'DELETE' }),
 
   // Info
   getInfoPages: () => fetchJson<InfoPage[]>('/info'),

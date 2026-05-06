@@ -64,8 +64,8 @@ export const Courses = ({ user, embedded }: CoursesProps) => {
           title='קטלוג קורסים'
           subtitle={
             isTrainee
-              ? `${displayed.length} קורסים מתקדמים — בחירת מחזור ושליחת בקשה.`
-              : `${displayed.length} קורסים במערכת — לפי סוג ומחזור.`
+              ? `${displayed.length} קורסים מתקדמים - בחירת מחזור ושליחת בקשה.`
+              : `${displayed.length} קורסים במערכת - לפי סוג ומחזור.`
           }
           tags={catalogTags}
         />
@@ -274,7 +274,7 @@ function CourseCard({
                       )}
                       <span className='text-xs font-medium text-emerald-700'>{inst.name}</span>
                       <span className='text-xs text-emerald-600'>
-                        {new Date(inst.startDate).toLocaleDateString('he-IL')} —{' '}
+                        {new Date(inst.startDate).toLocaleDateString('he-IL')} -{' '}
                         {new Date(inst.endDate).toLocaleDateString('he-IL')}
                       </span>
                     </div>
@@ -414,7 +414,7 @@ export function InstanceParticipants({
             <option value=''>בחר משתתף...</option>
             {availableUsers.map((u: User) => (
               <option key={u.id} value={u.id}>
-                {u.name} — {u.branch?.name ?? ''}
+                {u.name} - {u.branch?.name ?? ''}
               </option>
             ))}
           </select>

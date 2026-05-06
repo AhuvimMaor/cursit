@@ -1,8 +1,10 @@
-import { Loader2, Plus, Save, Search, X } from 'lucide-react';
+import { Loader2, Plus, Save, Search } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { Modal } from '../components/Modal';
 import { ScreenGuide } from '../components/ScreenGuide';
+import { toast } from '../components/Toast';
 import { useApi } from '../hooks/useApi';
 import type { Branch, Course, CourseInstance, EventLog, User } from '../lib/api';
 import { api } from '../lib/api';
@@ -25,7 +27,7 @@ export const Admin = () => {
       <ScreenGuide
         eyebrow='ניהול'
         title='ניהול מערכת'
-        subtitle='משתמשים, קורסים, מבנה ארגוני ויומן פעולות — הכל בטאבים למטה.'
+        subtitle='משתמשים, קורסים, מבנה ארגוני ויומן פעולות - הכל בטאבים למטה.'
         tags={['משתמשים', 'קורסים', 'ענפים', 'יומן']}
       />
 
@@ -33,6 +35,7 @@ export const Admin = () => {
         {tabs.map((t) => (
           <button
             key={t.key}
+            type='button'
             onClick={() => setTab(t.key)}
             className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               tab === t.key
@@ -65,7 +68,7 @@ function UsersTab() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
-  const [showForm, setShowForm] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const filtered = useMemo(() => {
@@ -95,8 +98,8 @@ function UsersTab() {
       </div>
 
       {/* Toolbar */}
-      <div className='flex items-center gap-3'>
-        <div className='relative flex-1'>
+      <div className='flex flex-wrap items-center gap-3'>
+        <div className='relative flex-1 min-w-48'>
           <Search
             size={16}
             className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground'
@@ -133,35 +136,16 @@ function UsersTab() {
           ))}
         </select>
         <button
-          onClick={() => {
-            setShowForm(true);
-            setEditingUser(null);
-          }}
+          type='button'
+          onClick={() => setShowCreateModal(true)}
           className='flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
         >
           <Plus size={16} /> הוסף משתמש
         </button>
       </div>
 
-      {/* Form */}
-      {(showForm || editingUser) && (
-        <UserForm
-          user={editingUser}
-          branches={branches ?? []}
-          onDone={() => {
-            setShowForm(false);
-            setEditingUser(null);
-            refetch();
-          }}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingUser(null);
-          }}
-        />
-      )}
-
       {/* Table */}
-      <div className='rounded-xl border border-border bg-white shadow-sm'>
+      <div className='rounded-xl border border-border bg-white shadow-sm overflow-x-auto'>
         <table className='w-full'>
           <thead>
             <tr className='border-b border-border bg-muted/30 text-right'>
@@ -205,6 +189,7 @@ function UsersTab() {
                 </td>
                 <td className='px-4 py-3'>
                   <button
+                    type='button'
                     onClick={() => setEditingUser(u)}
                     className='text-xs text-primary hover:underline'
                   >
@@ -219,6 +204,46 @@ function UsersTab() {
           {filtered.length} מתוך {users?.length ?? 0} משתמשים
         </div>
       </div>
+
+      {/* Create user modal */}
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title='משתמש חדש'
+        size='md'
+      >
+        <UserForm
+          user={null}
+          branches={branches ?? []}
+          onDone={() => {
+            setShowCreateModal(false);
+            toast.success('המשתמש נוצר בהצלחה');
+            refetch();
+          }}
+          onCancel={() => setShowCreateModal(false)}
+        />
+      </Modal>
+
+      {/* Edit user modal */}
+      <Modal
+        open={!!editingUser}
+        onClose={() => setEditingUser(null)}
+        title='עריכת משתמש'
+        size='md'
+      >
+        {editingUser && (
+          <UserForm
+            user={editingUser}
+            branches={branches ?? []}
+            onDone={() => {
+              setEditingUser(null);
+              toast.success('המשתמש עודכן בהצלחה');
+              refetch();
+            }}
+            onCancel={() => setEditingUser(null)}
+          />
+        )}
+      </Modal>
     </div>
   );
 }
@@ -271,37 +296,31 @@ function UserForm({ user, branches, onDone, onCancel }: UserFormProps) {
   };
 
   return (
-    <div className='rounded-xl border-2 border-primary/20 bg-primary/5 p-5'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h3 className='text-sm font-semibold'>{isEdit ? 'עריכת משתמש' : 'משתמש חדש'}</h3>
-        <button onClick={onCancel}>
-          <X size={16} className='text-muted-foreground' />
-        </button>
-      </div>
-      <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6'>
+    <div className='space-y-4'>
+      <div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
         <div>
-          <label className='mb-1 block text-xs font-medium'>שם</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>שם</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm outline-none focus:border-primary'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
           />
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>מזהה</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>מזהה</label>
           <input
             value={uniqueId}
             onChange={(e) => setUniqueId(e.target.value)}
             disabled={isEdit}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm outline-none focus:border-primary disabled:bg-muted'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary disabled:bg-muted'
           />
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>תפקיד</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>תפקיד</label>
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm'
           >
             {Object.values(Role).map((r) => (
               <option key={r} value={r}>
@@ -311,14 +330,14 @@ function UserForm({ user, branches, onDone, onCancel }: UserFormProps) {
           </select>
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>ענף</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>ענף</label>
           <select
             value={branchId}
             onChange={(e) => {
               setBranchId(e.target.value);
               setTeamId('');
             }}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm'
           >
             <option value=''>—</option>
             {branches.map((b) => (
@@ -329,11 +348,11 @@ function UserForm({ user, branches, onDone, onCancel }: UserFormProps) {
           </select>
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>צוות</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>צוות</label>
           <select
             value={teamId}
             onChange={(e) => setTeamId(e.target.value)}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm'
           >
             <option value=''>—</option>
             {teams.map((t) => (
@@ -345,11 +364,11 @@ function UserForm({ user, branches, onDone, onCancel }: UserFormProps) {
         </div>
         {isEdit && (
           <div>
-            <label className='mb-1 block text-xs font-medium'>פעיל</label>
+            <label className='mb-1 block text-xs font-medium text-foreground'>פעיל</label>
             <select
               value={isActive ? 'true' : 'false'}
               onChange={(e) => setIsActive(e.target.value === 'true')}
-              className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm'
+              className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm'
             >
               <option value='true'>כן</option>
               <option value='false'>לא</option>
@@ -357,20 +376,22 @@ function UserForm({ user, branches, onDone, onCancel }: UserFormProps) {
           </div>
         )}
       </div>
-      <div className='mt-3 flex gap-2'>
+      <div className='flex justify-end gap-2 pt-1'>
         <button
-          onClick={handleSubmit}
-          disabled={saving}
-          className='flex items-center gap-1 rounded-lg bg-primary px-4 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50'
-        >
-          {saving ? <Loader2 size={12} className='animate-spin' /> : <Save size={12} />}
-          {isEdit ? 'שמור' : 'צור'}
-        </button>
-        <button
+          type='button'
           onClick={onCancel}
-          className='rounded-lg border border-border px-4 py-1.5 text-xs text-muted-foreground hover:bg-muted'
+          className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'
         >
           ביטול
+        </button>
+        <button
+          type='button'
+          onClick={handleSubmit}
+          disabled={saving || !name || !uniqueId}
+          className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50'
+        >
+          {saving ? <Loader2 size={14} className='animate-spin' /> : <Save size={14} />}
+          {isEdit ? 'שמור' : 'צור'}
         </button>
       </div>
     </div>
@@ -383,11 +404,11 @@ function UserForm({ user, branches, onDone, onCancel }: UserFormProps) {
 function CoursesTab() {
   const fetcher = useCallback(() => api.getCourses(), []);
   const { data: courses, loading, refetch } = useApi(fetcher);
-  const [showForm, setShowForm] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [typeFilter, setTypeFilter] = useState('');
   const [expandedCourse, setExpandedCourse] = useState<number | null>(null);
-  const [showInstanceForm, setShowInstanceForm] = useState<number | null>(null);
+  const [instanceModalCourseId, setInstanceModalCourseId] = useState<number | null>(null);
 
   const filtered = useMemo(() => {
     if (!courses) return [];
@@ -398,6 +419,7 @@ function CoursesTab() {
 
   return (
     <div className='space-y-4'>
+      {/* Toolbar */}
       <div className='flex items-center gap-3'>
         <select
           value={typeFilter}
@@ -410,31 +432,15 @@ function CoursesTab() {
         </select>
         <div className='flex-1' />
         <button
-          onClick={() => {
-            setShowForm(true);
-            setEditingCourse(null);
-          }}
+          type='button'
+          onClick={() => setShowCreateModal(true)}
           className='flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
         >
           <Plus size={16} /> קורס חדש
         </button>
       </div>
 
-      {(showForm || editingCourse) && (
-        <CourseForm
-          course={editingCourse}
-          onDone={() => {
-            setShowForm(false);
-            setEditingCourse(null);
-            refetch();
-          }}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingCourse(null);
-          }}
-        />
-      )}
-
+      {/* Course list */}
       <div className='space-y-3'>
         {filtered.map((c) => {
           const isExpanded = expandedCourse === c.id;
@@ -442,7 +448,7 @@ function CoursesTab() {
           return (
             <div key={c.id} className='rounded-xl border border-border bg-white shadow-sm'>
               <div
-                className='flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/30'
+                className='flex cursor-pointer items-center gap-3 p-4 hover:bg-muted/30'
                 onClick={() => setExpandedCourse(isExpanded ? null : c.id)}
               >
                 <span
@@ -450,21 +456,23 @@ function CoursesTab() {
                 >
                   {c.type === 'FOUNDATION' ? 'יסוד' : c.type === 'LEADERSHIP' ? 'ניהול' : 'מתקדם'}
                 </span>
-                <div className='flex-1'>
+                <div className='flex-1 min-w-0'>
                   <p className='text-sm font-semibold text-foreground'>{c.name}</p>
-                  <p className='text-xs text-muted-foreground'>{c.description.slice(0, 80)}...</p>
+                  <p className='text-xs text-muted-foreground truncate'>
+                    {c.description.slice(0, 80)}...
+                  </p>
                 </div>
-                <div className='flex items-center gap-2'>
+                <div className='flex shrink-0 items-center gap-2'>
                   <span className='text-xs text-muted-foreground'>{openInst.length} מחזורים</span>
                   <span
                     className={`h-2 w-2 rounded-full ${c.isPublished ? 'bg-emerald-500' : 'bg-gray-300'}`}
                     title={c.isPublished ? 'מפורסם' : 'טיוטה'}
                   />
                   <button
+                    type='button'
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditingCourse(c);
-                      setShowForm(false);
                     }}
                     className='text-xs text-primary hover:underline'
                   >
@@ -475,25 +483,17 @@ function CoursesTab() {
 
               {isExpanded && (
                 <div className='border-t border-border p-4'>
-                  <div className='mb-2 flex items-center justify-between'>
+                  <div className='mb-3 flex items-center justify-between'>
                     <p className='text-xs font-medium text-foreground'>מחזורים</p>
                     <button
-                      onClick={() => setShowInstanceForm(c.id)}
+                      type='button'
+                      onClick={() => setInstanceModalCourseId(c.id)}
                       className='flex items-center gap-1 text-xs text-primary hover:underline'
                     >
                       <Plus size={12} /> מחזור חדש
                     </button>
                   </div>
-                  {showInstanceForm === c.id && (
-                    <InstanceForm
-                      courseId={c.id}
-                      onDone={() => {
-                        setShowInstanceForm(null);
-                        refetch();
-                      }}
-                      onCancel={() => setShowInstanceForm(null)}
-                    />
-                  )}
+
                   {c.instances && c.instances.length > 0 ? (
                     <div className='space-y-1.5'>
                       {c.instances.map((inst: CourseInstance) => (
@@ -504,7 +504,7 @@ function CoursesTab() {
                           <span className='text-sm text-foreground'>{inst.name}</span>
                           <div className='flex items-center gap-2'>
                             <span className='text-xs text-muted-foreground'>
-                              {new Date(inst.startDate).toLocaleDateString('he-IL')} —{' '}
+                              {new Date(inst.startDate).toLocaleDateString('he-IL')} -{' '}
                               {new Date(inst.endDate).toLocaleDateString('he-IL')}
                             </span>
                             <span
@@ -544,6 +544,64 @@ function CoursesTab() {
           );
         })}
       </div>
+
+      {/* Create course modal */}
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title='קורס חדש'
+        size='md'
+      >
+        <CourseForm
+          course={null}
+          onDone={() => {
+            setShowCreateModal(false);
+            toast.success('הקורס נוצר בהצלחה');
+            refetch();
+          }}
+          onCancel={() => setShowCreateModal(false)}
+        />
+      </Modal>
+
+      {/* Edit course modal */}
+      <Modal
+        open={!!editingCourse}
+        onClose={() => setEditingCourse(null)}
+        title='עריכת קורס'
+        size='md'
+      >
+        {editingCourse && (
+          <CourseForm
+            course={editingCourse}
+            onDone={() => {
+              setEditingCourse(null);
+              toast.success('הקורס עודכן בהצלחה');
+              refetch();
+            }}
+            onCancel={() => setEditingCourse(null)}
+          />
+        )}
+      </Modal>
+
+      {/* New instance modal */}
+      <Modal
+        open={instanceModalCourseId !== null}
+        onClose={() => setInstanceModalCourseId(null)}
+        title='מחזור חדש'
+        size='sm'
+      >
+        {instanceModalCourseId !== null && (
+          <InstanceForm
+            courseId={instanceModalCourseId}
+            onDone={() => {
+              setInstanceModalCourseId(null);
+              toast.success('המחזור נוצר בהצלחה');
+              refetch();
+            }}
+            onCancel={() => setInstanceModalCourseId(null)}
+          />
+        )}
+      </Modal>
     </div>
   );
 }
@@ -595,28 +653,22 @@ function CourseForm({ course, onDone, onCancel }: CourseFormProps) {
   };
 
   return (
-    <div className='rounded-xl border-2 border-primary/20 bg-primary/5 p-5'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h3 className='text-sm font-semibold'>{isEdit ? 'עריכת קורס' : 'קורס חדש'}</h3>
-        <button onClick={onCancel}>
-          <X size={16} className='text-muted-foreground' />
-        </button>
-      </div>
+    <div className='space-y-4'>
       <div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
         <div className='col-span-2 sm:col-span-1'>
-          <label className='mb-1 block text-xs font-medium'>שם הקורס</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>שם הקורס</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm outline-none focus:border-primary'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
           />
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>סוג</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>סוג</label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as 'FOUNDATION' | 'ADVANCED' | 'LEADERSHIP')}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm'
           >
             <option value='FOUNDATION'>יסוד</option>
             <option value='ADVANCED'>מתקדם</option>
@@ -624,65 +676,67 @@ function CourseForm({ course, onDone, onCancel }: CourseFormProps) {
           </select>
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>מפורסם</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>מפורסם</label>
           <select
             value={isPublished ? 'true' : 'false'}
             onChange={(e) => setIsPublished(e.target.value === 'true')}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm'
           >
             <option value='true'>כן</option>
             <option value='false'>לא</option>
           </select>
         </div>
         <div className='col-span-2 sm:col-span-3'>
-          <label className='mb-1 block text-xs font-medium'>תיאור</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>תיאור</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm outline-none focus:border-primary'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
           />
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>שעות גמו"ש</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>שעות גמו"ש</label>
           <input
             type='number'
             value={gmushHours}
             onChange={(e) => setGmushHours(e.target.value)}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm outline-none focus:border-primary'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
           />
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>מיקום</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>מיקום</label>
           <input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm outline-none focus:border-primary'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
           />
         </div>
         <div>
-          <label className='mb-1 block text-xs font-medium'>דרישות</label>
+          <label className='mb-1 block text-xs font-medium text-foreground'>דרישות</label>
           <input
             value={requirements}
             onChange={(e) => setRequirements(e.target.value)}
-            className='w-full rounded-lg border border-border bg-white px-3 py-1.5 text-sm outline-none focus:border-primary'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
           />
         </div>
       </div>
-      <div className='mt-3 flex gap-2'>
+      <div className='flex justify-end gap-2 pt-1'>
         <button
-          onClick={handleSubmit}
-          disabled={saving}
-          className='flex items-center gap-1 rounded-lg bg-primary px-4 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50'
-        >
-          {saving ? <Loader2 size={12} className='animate-spin' /> : <Save size={12} />}{' '}
-          {isEdit ? 'שמור' : 'צור'}
-        </button>
-        <button
+          type='button'
           onClick={onCancel}
-          className='rounded-lg border border-border px-4 py-1.5 text-xs text-muted-foreground hover:bg-muted'
+          className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'
         >
           ביטול
+        </button>
+        <button
+          type='button'
+          onClick={handleSubmit}
+          disabled={saving || !name || !description}
+          className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50'
+        >
+          {saving ? <Loader2 size={14} className='animate-spin' /> : <Save size={14} />}
+          {isEdit ? 'שמור' : 'צור'}
         </button>
       </div>
     </div>
@@ -709,37 +763,54 @@ function InstanceForm({ courseId, onDone, onCancel }: InstanceFormProps) {
   };
 
   return (
-    <div className='mb-3 rounded-lg border border-primary/20 bg-primary/5 p-3'>
-      <div className='grid grid-cols-3 gap-2'>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder='שם מחזור'
-          className='rounded border border-border bg-white px-2 py-1 text-sm'
-        />
-        <input
-          type='date'
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className='rounded border border-border bg-white px-2 py-1 text-sm'
-        />
-        <input
-          type='date'
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className='rounded border border-border bg-white px-2 py-1 text-sm'
-        />
+    <div className='space-y-4'>
+      <div className='space-y-3'>
+        <div>
+          <label className='mb-1 block text-xs font-medium text-foreground'>שם מחזור</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder='לדוגמה: מחזור א׳ 2025'
+            className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+          />
+        </div>
+        <div className='grid grid-cols-2 gap-3'>
+          <div>
+            <label className='mb-1 block text-xs font-medium text-foreground'>תאריך התחלה</label>
+            <input
+              type='date'
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+            />
+          </div>
+          <div>
+            <label className='mb-1 block text-xs font-medium text-foreground'>תאריך סיום</label>
+            <input
+              type='date'
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+            />
+          </div>
+        </div>
       </div>
-      <div className='mt-2 flex gap-2'>
+      <div className='flex justify-end gap-2 pt-1'>
         <button
-          onClick={handleSubmit}
-          disabled={saving}
-          className='rounded bg-primary px-3 py-1 text-xs text-white'
+          type='button'
+          onClick={onCancel}
+          className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'
         >
-          {saving ? '...' : 'צור מחזור'}
-        </button>
-        <button onClick={onCancel} className='rounded border border-border px-3 py-1 text-xs'>
           ביטול
+        </button>
+        <button
+          type='button'
+          onClick={handleSubmit}
+          disabled={saving || !name || !startDate || !endDate}
+          className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50'
+        >
+          {saving ? <Loader2 size={14} className='animate-spin' /> : <Plus size={14} />}
+          צור מחזור
         </button>
       </div>
     </div>
@@ -752,8 +823,10 @@ function InstanceForm({ courseId, onDone, onCancel }: InstanceFormProps) {
 function BranchesTab() {
   const fetcher = useCallback(() => api.getBranches(), []);
   const { data: branches, loading, refetch } = useApi(fetcher);
+  const [showBranchModal, setShowBranchModal] = useState(false);
   const [newBranch, setNewBranch] = useState('');
-  const [newTeam, setNewTeam] = useState<{ name: string; branchId: number } | null>(null);
+  const [teamModalBranchId, setTeamModalBranchId] = useState<number | null>(null);
+  const [newTeamName, setNewTeamName] = useState('');
   const [saving, setSaving] = useState(false);
 
   if (loading) return <LoadingSpinner />;
@@ -764,6 +837,8 @@ function BranchesTab() {
     try {
       await api.createBranch(newBranch);
       setNewBranch('');
+      setShowBranchModal(false);
+      toast.success('הענף נוצר בהצלחה');
       refetch();
     } finally {
       setSaving(false);
@@ -771,32 +846,30 @@ function BranchesTab() {
   };
 
   const handleAddTeam = async () => {
-    if (!newTeam?.name || !newTeam?.branchId) return;
+    if (!newTeamName || !teamModalBranchId) return;
     setSaving(true);
     try {
-      await api.createTeam(newTeam.name, newTeam.branchId);
-      setNewTeam(null);
+      await api.createTeam(newTeamName, teamModalBranchId);
+      setNewTeamName('');
+      setTeamModalBranchId(null);
+      toast.success('הצוות נוצר בהצלחה');
       refetch();
     } finally {
       setSaving(false);
     }
   };
 
+  const teamModalBranch = branches?.find((b) => b.id === teamModalBranchId);
+
   return (
     <div className='space-y-4'>
-      <div className='flex items-center gap-2'>
-        <input
-          value={newBranch}
-          onChange={(e) => setNewBranch(e.target.value)}
-          placeholder='שם ענף חדש'
-          className='rounded-lg border border-border bg-white px-3 py-2 text-sm'
-        />
+      <div className='flex justify-end'>
         <button
-          onClick={handleAddBranch}
-          disabled={saving}
-          className='rounded-lg bg-primary px-4 py-2 text-sm text-white'
+          type='button'
+          onClick={() => setShowBranchModal(true)}
+          className='flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
         >
-          <Plus size={14} className='inline' /> הוסף ענף
+          <Plus size={16} /> הוסף ענף
         </button>
       </div>
 
@@ -805,47 +878,112 @@ function BranchesTab() {
           <div key={b.id} className='rounded-xl border border-border bg-white p-4 shadow-sm'>
             <div className='mb-3 flex items-center justify-between'>
               <h3 className='text-sm font-semibold text-foreground'>{b.name}</h3>
-              <span className='text-xs text-muted-foreground'>{b.teams?.length ?? 0} צוותות</span>
-            </div>
-            <div className='space-y-1.5'>
-              {b.teams?.map((t) => (
-                <div
-                  key={t.id}
-                  className='rounded-lg bg-muted/30 px-3 py-2 text-sm text-foreground'
-                >
-                  {t.name}
-                </div>
-              ))}
-            </div>
-            {newTeam?.branchId === b.id ? (
-              <div className='mt-2 flex items-center gap-2'>
-                <input
-                  value={newTeam.name}
-                  onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
-                  placeholder='שם צוות'
-                  className='flex-1 rounded border border-border bg-white px-2 py-1 text-sm'
-                />
+              <div className='flex items-center gap-3'>
+                <span className='text-xs text-muted-foreground'>{b.teams?.length ?? 0} צוותות</span>
                 <button
-                  onClick={handleAddTeam}
-                  className='rounded bg-primary px-3 py-1 text-xs text-white'
+                  type='button'
+                  onClick={() => {
+                    setTeamModalBranchId(b.id);
+                    setNewTeamName('');
+                  }}
+                  className='flex items-center gap-1 text-xs text-primary hover:underline'
                 >
-                  הוסף
-                </button>
-                <button onClick={() => setNewTeam(null)} className='text-xs text-muted-foreground'>
-                  ביטול
+                  <Plus size={12} /> הוסף צוות
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={() => setNewTeam({ name: '', branchId: b.id })}
-                className='mt-2 text-xs text-primary hover:underline'
-              >
-                <Plus size={12} className='inline' /> הוסף צוות
-              </button>
-            )}
+            </div>
+            <div className='flex flex-wrap gap-2'>
+              {b.teams?.map((t) => (
+                <span
+                  key={t.id}
+                  className='rounded-lg bg-muted/50 px-3 py-1.5 text-sm text-foreground'
+                >
+                  {t.name}
+                </span>
+              ))}
+              {(!b.teams || b.teams.length === 0) && (
+                <p className='text-xs text-muted-foreground'>אין צוותות בענף זה</p>
+              )}
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Add branch modal */}
+      <Modal
+        open={showBranchModal}
+        onClose={() => setShowBranchModal(false)}
+        title='ענף חדש'
+        size='sm'
+      >
+        <div className='space-y-4'>
+          <div>
+            <label className='mb-1 block text-xs font-medium text-foreground'>שם הענף</label>
+            <input
+              value={newBranch}
+              onChange={(e) => setNewBranch(e.target.value)}
+              placeholder='לדוגמה: ענף צפון'
+              className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+            />
+          </div>
+          <div className='flex justify-end gap-2'>
+            <button
+              type='button'
+              onClick={() => setShowBranchModal(false)}
+              className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'
+            >
+              ביטול
+            </button>
+            <button
+              type='button'
+              onClick={handleAddBranch}
+              disabled={saving || !newBranch}
+              className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50'
+            >
+              {saving ? <Loader2 size={14} className='animate-spin' /> : <Plus size={14} />}
+              צור ענף
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add team modal */}
+      <Modal
+        open={teamModalBranchId !== null}
+        onClose={() => setTeamModalBranchId(null)}
+        title={`הוסף צוות ל${teamModalBranch?.name ?? ''}`}
+        size='sm'
+      >
+        <div className='space-y-4'>
+          <div>
+            <label className='mb-1 block text-xs font-medium text-foreground'>שם הצוות</label>
+            <input
+              value={newTeamName}
+              onChange={(e) => setNewTeamName(e.target.value)}
+              placeholder='לדוגמה: צוות אלפא'
+              className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+            />
+          </div>
+          <div className='flex justify-end gap-2'>
+            <button
+              type='button'
+              onClick={() => setTeamModalBranchId(null)}
+              className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'
+            >
+              ביטול
+            </button>
+            <button
+              type='button'
+              onClick={handleAddTeam}
+              disabled={saving || !newTeamName}
+              className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50'
+            >
+              {saving ? <Loader2 size={14} className='animate-spin' /> : <Plus size={14} />}
+              צור צוות
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -927,7 +1065,7 @@ function AuditTab() {
         <span className='text-xs text-muted-foreground'>{events?.length ?? 0} אירועים</span>
       </div>
 
-      <div className='rounded-xl border border-border bg-white shadow-sm'>
+      <div className='rounded-xl border border-border bg-white shadow-sm overflow-x-auto'>
         <table className='w-full'>
           <thead>
             <tr className='border-b border-border bg-muted/30 text-right'>
@@ -968,7 +1106,8 @@ function AuditTab() {
                   </span>
                 </td>
                 <td className='px-4 py-3 text-xs text-muted-foreground'>
-                  {ENTITY_LABELS[e.entityType] ?? e.entityType} {e.entityId ? `#${e.entityId}` : ''}
+                  {ENTITY_LABELS[e.entityType] ?? e.entityType}{' '}
+                  {e.entityId ? `#${e.entityId}` : ''}
                 </td>
                 <td className='max-w-[200px] truncate px-4 py-3 text-xs text-muted-foreground'>
                   {e.details ? JSON.stringify(e.details).slice(0, 80) : '—'}

@@ -16,6 +16,7 @@ enum UserRole {
   BRANCH_COORD
   TEAM_LEADER
   TRAINEE
+  UNIT_TRAINING // מדור הדרכה יחידתי - 4th approval authority
 }
 
 enum CourseType {
@@ -52,6 +53,7 @@ enum RegistrationStatus {
   PENDING_TL
   PENDING_COORD
   PENDING_BIS
+  PENDING_UNIT_TRAINING // Awaiting מדור הדרכה יחידתי approval (step 4)
   APPROVED
   REJECTED
 }
@@ -63,6 +65,11 @@ enum AggregateType {
   COURSE_PHASE
   CANDIDACY
   REGISTRATION
+}
+
+enum ServiceType {
+  KEVA      // קבע - career military
+  MANDATORY // חובה - mandatory service
 }
 
 // ──────────────────────────────────────────
@@ -104,15 +111,54 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  candidaciesAsCandidate CommandCandidacy[] @relation("CandidateUser")
-  candidaciesAsSubmitter CommandCandidacy[] @relation("SubmitterUser")
-  candidacyReviews       CommandCandidacy[] @relation("ReviewerUser")
-  registrations          CourseRegistration[] @relation("RegistrantUser")
-  tlApprovals            CourseRegistration[] @relation("TlApprover")
-  coordApprovals         CourseRegistration[] @relation("CoordApprover")
-  bisApprovals           CourseRegistration[] @relation("BisApprover")
-  eventLogs              EventLog[]
-  eventsAsActor          Event[]             @relation("EventActor")
+  candidaciesAsCandidate  CommandCandidacy[]   @relation("CandidateUser")
+  candidaciesAsSubmitter  CommandCandidacy[]   @relation("SubmitterUser")
+  candidacyReviews        CommandCandidacy[]   @relation("ReviewerUser")
+  registrations           CourseRegistration[] @relation("RegistrantUser")
+  tlApprovals             CourseRegistration[] @relation("TlApprover")
+  coordApprovals          CourseRegistration[] @relation("CoordApprover")
+  bisApprovals            CourseRegistration[] @relation("BisApprover")
+  unitTrainingApprovals   CourseRegistration[] @relation("UnitTrainingApprover")
+  eventLogs               EventLog[]
+  eventsAsActor           Event[]              @relation("EventActor")
+  uploadedFiles           AttachedFile[]       @relation("FileUploader")
+
+  // Optional soldier profile - only populated for TRAINEE role
+  soldierProfile SoldierProfile?
+}
+
+// ──────────────────────────────────────────
+// Soldier Profile (gamush hours & service)
+// ──────────────────────────────────────────
+
+model SoldierProfile {
+  id                    Int         @id @default(autoincrement())
+  userId                Int         @unique
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceType           ServiceType
+  // Months remaining in mandatory service (null for KEVA)
+  remainingServiceMonths Int?
+  // Gamush (גמיש) hours tracking
+  gamushHoursCompleted  Int         @default(0)
+  gamushHoursRequired   Int         @default(0)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+// ──────────────────────────────────────────
+// Budget (advanced course budget per year)
+// ──────────────────────────────────────────
+
+model Budget {
+  id          Int      @id @default(autoincrement())
+  year        Int      // e.g. 2026
+  totalAmount Decimal  @db.Decimal(12, 2)
+  usedAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([year])
 }
 
 // ──────────────────────────────────────────
@@ -131,7 +177,7 @@ model Course {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  instances    CourseInstance[]
+  instances     CourseInstance[]
   formTemplates FormTemplate[]
 }
 
@@ -146,23 +192,23 @@ model CourseInstance {
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
 
-  phases       CoursePhase[]
-  candidacies  CommandCandidacy[]
+  phases        CoursePhase[]
+  candidacies   CommandCandidacy[]
   registrations CourseRegistration[]
 }
 
 model CoursePhase {
-  id               Int           @id @default(autoincrement())
-  courseInstanceId  Int
-  courseInstance    CourseInstance @relation(fields: [courseInstanceId], references: [id], onDelete: Cascade)
-  name             String        @db.VarChar(128)
+  id               Int            @id @default(autoincrement())
+  courseInstanceId Int
+  courseInstance   CourseInstance @relation(fields: [courseInstanceId], references: [id], onDelete: Cascade)
+  name             String         @db.VarChar(128)
   phaseType        PhaseType
   startDate        DateTime
   endDate          DateTime
-  description      String?       @db.Text
-  sortOrder        Int           @default(0)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  description      String?        @db.Text
+  sortOrder        Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 // ──────────────────────────────────────────
@@ -171,8 +217,8 @@ model CoursePhase {
 
 model CommandCandidacy {
   id               Int             @id @default(autoincrement())
-  courseInstanceId  Int
-  courseInstance    CourseInstance   @relation(fields: [courseInstanceId], references: [id])
+  courseInstanceId Int
+  courseInstance   CourseInstance  @relation(fields: [courseInstanceId], references: [id])
   candidateId      Int
   candidate        User            @relation("CandidateUser", fields: [candidateId], references: [id])
   submittedById    Int
@@ -187,6 +233,8 @@ model CommandCandidacy {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
+  files AttachedFile[] @relation("CandidacyFiles")
+
   @@unique([courseInstanceId, candidateId])
 }
 
@@ -196,37 +244,71 @@ model CommandCandidacy {
 
 model CourseRegistration {
   id               Int                @id @default(autoincrement())
-  courseInstanceId  Int
-  courseInstance    CourseInstance      @relation(fields: [courseInstanceId], references: [id])
+  courseInstanceId Int
+  courseInstance   CourseInstance     @relation(fields: [courseInstanceId], references: [id])
   userId           Int
   user             User               @relation("RegistrantUser", fields: [userId], references: [id])
   status           RegistrationStatus @default(PENDING_TL)
   formData         Json?
 
-  tlApprovedById    Int?
-  tlApprovedBy      User?     @relation("TlApprover", fields: [tlApprovedById], references: [id])
-  tlApprovedAt      DateTime?
-  tlNotes           String?   @db.Text
+  // Step 1: Team Leader
+  tlApprovedById Int?
+  tlApprovedBy   User?     @relation("TlApprover", fields: [tlApprovedById], references: [id])
+  tlApprovedAt   DateTime?
+  tlNotes        String?   @db.Text
 
+  // Step 2: Branch Coordinator
   coordApprovedById Int?
   coordApprovedBy   User?     @relation("CoordApprover", fields: [coordApprovedById], references: [id])
   coordApprovedAt   DateTime?
   coordNotes        String?   @db.Text
   coordPriority     Int?      // תיעדוף ענפי
 
-  
-  bisApprovedById   Int?
-  bisApprovedBy     User?     @relation("BisApprover", fields: [bisApprovedById], references: [id])
-  bisApprovedAt     DateTime?
-  bisNotes          String?   @db.Text
+  // Step 3: BIS Commander
+  bisApprovedById Int?
+  bisApprovedBy   User?     @relation("BisApprover", fields: [bisApprovedById], references: [id])
+  bisApprovedAt   DateTime?
+  bisNotes        String?   @db.Text
+
+  // Step 4: Unit Training (מדור הדרכה יחידתי)
+  unitTrainingApprovedById Int?
+  unitTrainingApprovedBy   User?     @relation("UnitTrainingApprover", fields: [unitTrainingApprovedById], references: [id])
+  unitTrainingApprovedAt   DateTime?
+  unitTrainingNotes        String?   @db.Text
 
   // Rejection (any stage)
-  rejectionReason   String?   @db.Text
+  rejectionReason String? @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  files AttachedFile[] @relation("RegistrationFiles")
+
   @@unique([courseInstanceId, userId])
+}
+
+// ──────────────────────────────────────────
+// File Attachments (generic - serves both registrations and candidacies)
+// ──────────────────────────────────────────
+
+model AttachedFile {
+  id             Int                @id @default(autoincrement())
+  registrationId Int?
+  registration   CourseRegistration? @relation("RegistrationFiles", fields: [registrationId], references: [id], onDelete: Cascade)
+  candidacyId    Int?
+  candidacy      CommandCandidacy?  @relation("CandidacyFiles", fields: [candidacyId], references: [id], onDelete: Cascade)
+  filename       String             @db.VarChar(256)
+  originalName   String             @db.VarChar(256)
+  mimeType       String             @db.VarChar(128)
+  size           Int
+  storagePath    String             @db.VarChar(512)
+  uploadedById   Int
+  uploadedBy     User               @relation("FileUploader", fields: [uploadedById], references: [id])
+  expiresAt      DateTime?
+  createdAt      DateTime           @default(now())
+
+  @@index([registrationId])
+  @@index([candidacyId])
 }
 
 // ──────────────────────────────────────────

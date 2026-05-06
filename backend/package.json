@@ -1,5 +1,5 @@
 {
-  "name": "@cursit/backend",
+  "name": "@bisli/backend",
   "version": "1.0.0",
   "main": "dist/index.js",
   "private": true,
@@ -26,7 +26,10 @@
     "*.ts": "eslint --fix"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1043.0",
+    "@aws-sdk/s3-request-presigner": "^3.1043.0",
     "@fastify/cors": "^11.1.0",
+    "@fastify/multipart": "^10.0.0",
     "@fastify/static": "^8.2.0",
     "@prisma/client": "^6.9.0",
     "dotenv": "^16.5.0",

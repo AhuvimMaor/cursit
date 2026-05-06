@@ -40,7 +40,7 @@ export const Info = () => {
       <ScreenGuide
         eyebrow='מדריכים'
         title='מידע ועדכונים'
-        subtitle='מדריכים קצרים — בוחרים כרטיס וקוראים.'
+        subtitle='מדריכים קצרים - בוחרים כרטיס וקוראים.'
         tags={['קריאה בלבד', `${pages.length} נושאים`]}
       />
 

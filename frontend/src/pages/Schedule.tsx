@@ -83,8 +83,8 @@ export const Schedule = ({ user, embedded }: ScheduleProps) => {
           title='לוח זמנים'
           subtitle={
             user.role === Role.TRAINEE
-              ? 'מועדים מהמחזורים שאליהם נרשמת — מסודרים לפי חודש.'
-              : 'כל השלבים במערכת — לפי חודש.'
+              ? 'מועדים מהמחזורים שאליהם נרשמת - מסודרים לפי חודש.'
+              : 'כל השלבים במערכת - לפי חודש.'
           }
           tags={scheduleTags}
         />
@@ -173,7 +173,7 @@ export const Schedule = ({ user, embedded }: ScheduleProps) => {
                   <div className='mt-3 space-y-1 border-t border-border/60 pt-3 text-xs text-muted-foreground'>
                     <p className='flex items-center gap-1'>
                       <Clock size={12} className='shrink-0' />
-                      {e.startDate.toLocaleDateString('he-IL')} —{' '}
+                      {e.startDate.toLocaleDateString('he-IL')} -{' '}
                       {e.endDate.toLocaleDateString('he-IL')}
                     </p>
                     {e.location && (

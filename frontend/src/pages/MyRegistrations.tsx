@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { useCallback } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -42,14 +42,19 @@ export const MyRegistrations = () => {
       <ScreenGuide
         eyebrow='אזור אישי'
         title='הרישומים שלי'
-        subtitle='בקשות רישום שלך לקורסים — כרטיס לכל בקשה; הסטטוס בצבע.'
+        subtitle='בקשות רישום שלך לקורסים - כרטיס לכל בקשה; הסטטוס בצבע.'
         tags={['רישום לקורס', 'ממתין', 'אושר']}
       />
 
       {registrations.length === 0 ? (
-        <div className='rounded-xl border border-border bg-white p-8 text-center shadow-sm'>
-          <p className='text-sm text-muted-foreground'>לא נרשמת לקורסים עדיין</p>
-          <p className='mt-1 text-xs text-muted-foreground'>עבור לקטלוג הקורסים כדי להירשם</p>
+        <div className='flex flex-col items-center justify-center rounded-xl border border-border bg-white p-14 text-center shadow-sm gap-4'>
+          <BookOpen size={52} className='text-muted-foreground/30' />
+          <div>
+            <p className='text-sm font-medium text-muted-foreground'>לא נרשמת לקורסים עדיין</p>
+            <p className='mt-1 text-xs text-muted-foreground/70'>
+              עבור לקטלוג הקורסים כדי להירשם לקורס
+            </p>
+          </div>
         </div>
       ) : (
         <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>

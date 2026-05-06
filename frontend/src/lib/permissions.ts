@@ -1,19 +1,18 @@
 import { Role } from './roles';
 
 export type Page =
-  | 'dashboard'
   | 'courses-hub'
   | 'candidacy'
   | 'approvals'
   | 'my-registrations'
-  | 'info'
   | 'admin';
 
 const ROLE_PAGES: Record<Role, Page[]> = {
-  [Role.BIS_CDR]: ['dashboard', 'courses-hub', 'candidacy', 'approvals', 'info', 'admin'],
-  [Role.BRANCH_COORD]: ['dashboard', 'courses-hub', 'candidacy', 'approvals'],
-  [Role.TEAM_LEADER]: ['dashboard', 'courses-hub', 'candidacy', 'approvals'],
-  [Role.TRAINEE]: ['dashboard', 'courses-hub', 'my-registrations', 'info'],
+  [Role.BIS_CDR]: ['courses-hub', 'candidacy', 'approvals', 'admin'],
+  [Role.BRANCH_COORD]: ['courses-hub', 'candidacy', 'approvals'],
+  [Role.TEAM_LEADER]: ['courses-hub', 'candidacy', 'approvals'],
+  [Role.TRAINEE]: ['courses-hub', 'my-registrations'],
+  [Role.UNIT_TRAINING]: ['approvals'],
 };
 
 export const getAllowedPages = (role: Role): Page[] => ROLE_PAGES[role];
@@ -21,4 +20,4 @@ export const getAllowedPages = (role: Role): Page[] => ROLE_PAGES[role];
 export const canAccess = (role: Role, page: Page): boolean =>
   ROLE_PAGES[role]?.includes(page) ?? false;
 
-export const getDefaultPage = (role: Role): Page => ROLE_PAGES[role]?.[0] ?? 'dashboard';
+export const getDefaultPage = (role: Role): Page => ROLE_PAGES[role]?.[0] ?? 'courses-hub';

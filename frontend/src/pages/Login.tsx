@@ -1,4 +1,4 @@
-import { BookOpen, LogIn } from 'lucide-react';
+import { Shield, LogIn } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -11,14 +11,15 @@ type LoginProps = {
   onLogin: (user: AuthUser) => void;
 };
 
-const ROLE_COLORS: Record<Role, string> = {
-  [Role.BIS_CDR]: 'bg-purple-100 text-purple-700',
-  [Role.BRANCH_COORD]: 'bg-blue-100 text-blue-700',
-  [Role.TEAM_LEADER]: 'bg-amber-100 text-amber-700',
-  [Role.TRAINEE]: 'bg-emerald-100 text-emerald-700',
+const ROLE_BADGE: Record<Role, { bg: string; text: string }> = {
+  [Role.BIS_CDR]: { bg: 'bg-sky-900/60', text: 'text-sky-300' },
+  [Role.BRANCH_COORD]: { bg: 'bg-indigo-900/60', text: 'text-indigo-300' },
+  [Role.TEAM_LEADER]: { bg: 'bg-amber-900/60', text: 'text-amber-300' },
+  [Role.TRAINEE]: { bg: 'bg-slate-700/60', text: 'text-slate-300' },
+  [Role.UNIT_TRAINING]: { bg: 'bg-emerald-900/60', text: 'text-emerald-300' },
 };
 
-/** חייב להתאים ל־seed ב־api.ts — אחרת רכז ענף יראה 0 רישומים כשאין רשת */
+/** חייב להתאים ל-seed ב-api.ts */
 const FALLBACK_USERS: AuthUser[] = [
   { id: 1, uniqueId: '1000000', name: 'דוד כהן', role: Role.BIS_CDR },
   {
@@ -64,7 +65,6 @@ export const Login = ({ onLogin }: LoginProps) => {
       const fullUser = await api.login(user.uniqueId);
       setTimeout(() => onLogin(fullUser), 400);
     } catch {
-      // Production fallback until public backend is connected.
       setTimeout(() => onLogin(user), 200);
     }
   };
@@ -77,31 +77,69 @@ export const Login = ({ onLogin }: LoginProps) => {
   return (
     <div
       dir='rtl'
-      className='flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50'
+      className='relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0b1320]'
     >
-      <div className='w-full max-w-lg'>
+      {/* Subtle background texture */}
+      <div
+        className='pointer-events-none absolute inset-0 opacity-30'
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(14,165,233,0.18) 0%, transparent 70%)',
+        }}
+      />
+      {/* Grid overlay */}
+      <div
+        className='pointer-events-none absolute inset-0 opacity-[0.04]'
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }}
+      />
+
+      <div className='relative w-full max-w-md px-4'>
+        {/* Brand header */}
         <div className='mb-8 text-center'>
-          <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25'>
-            <BookOpen size={32} className='text-white' />
+          <div className='mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-sky-500/30 bg-sky-500/10 shadow-xl shadow-sky-500/10'>
+            <Shield size={30} className='text-sky-400' strokeWidth={1.5} />
           </div>
-          <h1 className='text-3xl font-bold text-foreground'>Coursit</h1>
-          <p className='mt-2 text-sm text-muted-foreground'>מערכת ניהול הדרכה וקורסים</p>
+          <h1 className='text-3xl font-bold tracking-tight text-white'>Bisli</h1>
+          <p className='mt-2 text-sm text-slate-400'>מערכת ניהול הדרכה וקורסים</p>
+          <div className='mx-auto mt-3 flex items-center justify-center gap-2'>
+            <span className='h-px w-8 bg-white/10' />
+            <span className='text-[11px] font-medium uppercase tracking-widest text-slate-600'>
+              כניסה למערכת
+            </span>
+            <span className='h-px w-8 bg-white/10' />
+          </div>
         </div>
 
-        <div className='rounded-2xl border border-border bg-white p-6 shadow-xl shadow-black/5'>
-          <h2 className='mb-1 text-lg font-semibold text-foreground'>התחברות</h2>
-          <p className='mb-4 text-sm text-muted-foreground'>בחר משתמש (סביבת פיתוח)</p>
+        {/* Login card */}
+        <div className='rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-sm'>
+          {/* Dev environment notice */}
+          <div className='mb-4 flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/8 px-3 py-2'>
+            <span className='h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400' />
+            <p className='text-[11px] text-amber-400'>סביבת פיתוח - בחר משתמש לכניסה</p>
+          </div>
 
-          <div className='max-h-[50vh] space-y-3 overflow-y-auto'>
+          <div className='max-h-[52vh] space-y-4 overflow-y-auto pl-0.5 pr-0.5'>
             {roleGroups.map((role) => {
               const roleUsers = usersToShow.filter((u) => u.role === role) ?? [];
               if (roleUsers.length === 0) return null;
+              const badge = ROLE_BADGE[role];
 
               return (
                 <div key={role}>
-                  <p className='mb-2 text-xs font-medium text-muted-foreground'>
-                    {HEBREW_ROLES[role]}
-                  </p>
+                  {/* Role group header */}
+                  <div className='mb-2 flex items-center gap-2'>
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${badge.bg} ${badge.text}`}
+                    >
+                      {HEBREW_ROLES[role]}
+                    </span>
+                    <span className='h-px flex-1 bg-white/8' />
+                  </div>
+
                   <div className='space-y-1.5'>
                     {roleUsers.map((user) => {
                       const isSelected = selectedId === user.id;
@@ -111,28 +149,32 @@ export const Login = ({ onLogin }: LoginProps) => {
                           key={user.id}
                           onClick={() => handleLogin(user as AuthUser)}
                           disabled={loggingIn}
-                          className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-right transition-all ${
+                          className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-right transition-all duration-150 ${
                             isSelected
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border hover:border-primary/30 hover:bg-muted/50'
-                          } ${loggingIn && !isSelected ? 'opacity-40' : ''}`}
+                              ? 'border-sky-500/40 bg-sky-500/12 shadow-[0_0_0_1px_rgba(14,165,233,0.2)]'
+                              : 'border-white/8 bg-white/4 hover:border-white/15 hover:bg-white/8'
+                          } ${loggingIn && !isSelected ? 'opacity-35' : ''}`}
                         >
-                          <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary'>
+                          <div
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+                              isSelected
+                                ? 'bg-sky-500/30 text-sky-300'
+                                : 'bg-white/8 text-slate-400'
+                            }`}
+                          >
                             {user.name.charAt(0)}
                           </div>
-                          <div className='flex-1'>
-                            <p className='text-sm font-medium text-foreground'>{user.name}</p>
+                          <div className='flex-1 text-right'>
+                            <p className='text-sm font-semibold text-white'>{user.name}</p>
                             {user.branch && (
-                              <p className='text-xs text-muted-foreground'>{user.branch.name}</p>
+                              <p className='text-xs text-slate-500'>{user.branch.name}</p>
                             )}
                           </div>
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[role]}`}
-                          >
-                            {HEBREW_ROLES[role]}
-                          </span>
                           {isSelected && loggingIn && (
-                            <div className='h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent' />
+                            <div className='h-4 w-4 animate-spin rounded-full border-2 border-sky-400 border-t-transparent' />
+                          )}
+                          {isSelected && !loggingIn && (
+                            <span className='h-2 w-2 shrink-0 rounded-full bg-sky-400' />
                           )}
                         </button>
                       );
@@ -144,19 +186,23 @@ export const Login = ({ onLogin }: LoginProps) => {
           </div>
 
           <div className='mt-6 flex items-center gap-3'>
-            <div className='h-px flex-1 bg-border' />
-            <span className='text-xs text-muted-foreground'>או</span>
-            <div className='h-px flex-1 bg-border' />
+            <div className='h-px flex-1 bg-white/8' />
+            <span className='text-xs text-slate-600'>או</span>
+            <div className='h-px flex-1 bg-white/8' />
           </div>
 
           <button
             disabled={loggingIn}
-            className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-foreground/90 disabled:opacity-50'
+            className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-900/40 transition-colors hover:bg-sky-500 disabled:opacity-50'
           >
-            <LogIn size={16} />
-            התחברות עם OAuth
+            <LogIn size={15} />
+            כניסה עם OAuth
           </button>
         </div>
+
+        <p className='mt-6 text-center text-[11px] text-slate-700'>
+          Bisli - מערכת מאובטחת למשתמשים מורשים בלבד
+        </p>
       </div>
     </div>
   );
