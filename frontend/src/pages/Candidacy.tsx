@@ -236,7 +236,7 @@ export const Candidacy = ({ user }: CandidacyProps) => {
         open={showFormModal}
         onClose={() => setShowFormModal(false)}
         title='הגשת מועמדות חדשה'
-        size='md'
+        size='lg'
       >
         <CandidacyForm
           teamId={user.teamId ?? undefined}

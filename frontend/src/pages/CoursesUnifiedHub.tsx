@@ -712,7 +712,7 @@ function CandidacyQuickForm({ instanceId, user, onClose }: CandidacyQuickFormPro
   };
 
   return (
-    <Modal open onClose={onClose} title='הגשת מועמדות לפיקוד' size='md'>
+    <Modal open onClose={onClose} title='הגשת מועמדות לפיקוד' size='lg'>
       {loading ? (
         <LoadingSpinner />
       ) : (
