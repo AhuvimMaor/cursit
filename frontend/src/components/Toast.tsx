@@ -1,13 +1,5 @@
 import { CheckCircle2, Info, X, XCircle } from 'lucide-react';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  createElement,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -56,7 +48,7 @@ const AUTO_DISMISS_MS = 4000;
 
 let nextId = 1;
 
-const toastListRoot = () => {
+const ToastList = () => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const timers = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -131,7 +123,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ToastContext.Provider value={{ addToast: () => {} }}>
       {children}
-      {createElement(toastListRoot)}
+      <ToastList />
     </ToastContext.Provider>
   );
 };
