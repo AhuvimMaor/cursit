@@ -1227,7 +1227,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     id: 1,
     courseInstanceId: 2,
     userId: 4,
-    status: 'PENDING_TL',
+    status: 'PENDING_COORD',
     formData: null,
     coordPriority: null,
     coordNotes: null,
@@ -1293,7 +1293,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     id: 7,
     courseInstanceId: 5,
     userId: 16,
-    status: 'PENDING_TL',
+    status: 'PENDING_COORD',
     formData: null,
     coordPriority: null,
     coordNotes: null,
@@ -1360,7 +1360,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     id: 13,
     courseInstanceId: 5,
     userId: 5,
-    status: 'PENDING_TL',
+    status: 'PENDING_COORD',
     formData: null,
     coordPriority: null,
     coordNotes: null,
@@ -1383,7 +1383,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     id: 15,
     courseInstanceId: 2,
     userId: 17,
-    status: 'PENDING_TL',
+    status: 'PENDING_COORD',
     formData: null,
     coordPriority: null,
     coordNotes: null,
@@ -1438,7 +1438,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     id: 20,
     courseInstanceId: 3,
     userId: 22,
-    status: 'PENDING_TL',
+    status: 'PENDING_COORD',
     formData: null,
     coordPriority: null,
     coordNotes: null,
@@ -1493,7 +1493,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     id: 25,
     courseInstanceId: 4,
     userId: 27,
-    status: 'PENDING_TL',
+    status: 'PENDING_COORD',
     formData: null,
     coordPriority: null,
     coordNotes: null,
@@ -1548,7 +1548,7 @@ const seedRegistrationsCore: CourseRegistration[] = [
     id: 30,
     courseInstanceId: 5,
     userId: 32,
-    status: 'PENDING_TL',
+    status: 'PENDING_COORD',
     formData: null,
     coordPriority: null,
     coordNotes: null,
@@ -1585,7 +1585,7 @@ const buildBranchRegistrationGaps = (
   startId: number,
 ): CourseRegistration[] => {
   const statuses: CourseRegistration['status'][] = [
-    'PENDING_TL',
+    'PENDING_COORD',
     'PENDING_COORD',
     'PENDING_BIS',
     'APPROVED',
@@ -2104,13 +2104,13 @@ const mockFetchJson = async <T>(url: string, options?: RequestInit): Promise<T> 
     return registrations.filter((r) => r.userId === user?.id) as T;
   if (method === 'GET' && pathname === '/registrations/team')
     return registrations.filter(
-      (r) => r.user?.teamId === user?.teamId && r.status === 'PENDING_TL',
+      (r) => r.user?.teamId === user?.teamId && r.status === 'PENDING_COORD',
     ) as T;
   if (method === 'GET' && pathname === '/registrations/branch') {
     const branchId = user?.branchId;
     /** בדמו כוללים גם PENDING_TL כדי שכל כפתורי הסינון יראו נתונים בענף (בפרודקשן לרכז בדרך כלל לא מוצג TL). */
     const branchStatuses: CourseRegistration['status'][] = [
-      'PENDING_TL',
+      'PENDING_COORD',
       'PENDING_COORD',
       'PENDING_BIS',
       'APPROVED',
@@ -2161,7 +2161,7 @@ const mockFetchJson = async <T>(url: string, options?: RequestInit): Promise<T> 
       id: nextMockId(mockDb.registrations),
       courseInstanceId,
       userId: user?.id ?? 0,
-      status: 'PENDING_TL',
+      status: 'PENDING_COORD',
       formData: (body.formData as Record<string, unknown>) ?? null,
       coordPriority: null,
       coordNotes: null,
@@ -2366,7 +2366,7 @@ export type CourseRegistration = {
   id: number;
   courseInstanceId: number;
   userId: number;
-  status: 'PENDING_TL' | 'PENDING_COORD' | 'PENDING_BIS' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING_COORD' | 'PENDING_BIS' | 'PENDING_UNIT_TRAINING' | 'APPROVED' | 'REJECTED';
   formData: Record<string, unknown> | null;
   coordPriority: number | null;
   coordNotes: string | null;
@@ -2509,6 +2509,7 @@ export const api = {
       body: JSON.stringify(data),
     }),
   getMyCandidacySubmissions: () => fetchJson<CommandCandidacy[]>('/candidacy/my-submissions'),
+  getMyCandidacies: () => fetchJson<CommandCandidacy[]>('/candidacy/mine'),
   getBranchCandidacies: () => fetchJson<CommandCandidacy[]>('/candidacy/branch'),
   getAllCandidacies: () => fetchJson<CommandCandidacy[]>('/candidacy/all'),
   coordReviewCandidacy: (id: number) =>

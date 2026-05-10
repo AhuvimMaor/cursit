@@ -87,7 +87,7 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
 
   fastify.post<{ Body: { courseInstanceId: number; formData?: Record<string, unknown> } }>(
     '/advanced',
-    { preHandler: [authenticate, requireRole('TRAINEE')] },
+    { preHandler: [authenticate, requireRole('TRAINEE', 'TEAM_LEADER', 'BIS_CDR')] },
     async (request, reply) => {
       const { courseInstanceId, formData } = request.body;
       const flowId = randomUUID();
@@ -149,52 +149,6 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
-  // Team leader sees team registrations
-  fastify.get(
-    '/team',
-    { preHandler: [authenticate, requireRole('TEAM_LEADER')] },
-    async (request) => {
-      return prisma.courseRegistration.findMany({
-        where: { user: { teamId: request.userTeamId }, status: 'PENDING_TL' },
-        include: { user: true, courseInstance: { include: { course: true } } },
-        orderBy: { createdAt: 'desc' },
-      });
-    },
-  );
-
-  // Team leader approves
-  fastify.patch<{ Params: { id: string }; Body: { tlNotes?: string } }>(
-    '/:id/approve-tl',
-    { preHandler: [authenticate, requireRole('TEAM_LEADER')] },
-    async (request) => {
-      const id = Number(request.params.id);
-      const flowId = randomUUID();
-      return prisma.$transaction(async (tx) => {
-        const updated = await tx.courseRegistration.update({
-          where: { id },
-          data: {
-            status: 'PENDING_COORD',
-            tlApprovedById: request.userId,
-            tlApprovedAt: new Date(),
-            tlNotes: request.body.tlNotes,
-          },
-        });
-        await appendEvent(tx, {
-          eventType: 'registration.tl_approved',
-          aggregateType: 'REGISTRATION',
-          aggregateId: id,
-          actorUserId: request.userId!,
-          payload: {
-            status: 'PENDING_COORD',
-            tlNotes: request.body.tlNotes ?? null,
-          },
-          flowId,
-        });
-        return updated;
-      });
-    },
-  );
-
   fastify.patch<{ Params: { id: string }; Body: { coordNotes?: string; coordPriority?: number } }>(
     '/:id/prioritize',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
@@ -205,7 +159,7 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
         const updated = await tx.courseRegistration.update({
           where: { id },
           data: {
-            status: 'PENDING_BIS',
+            status: 'APPROVED',
             coordApprovedById: request.userId,
             coordApprovedAt: new Date(),
             coordNotes: request.body.coordNotes,
@@ -213,12 +167,12 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
           },
         });
         await appendEvent(tx, {
-          eventType: 'registration.coord_approved',
+          eventType: 'registration.approved',
           aggregateType: 'REGISTRATION',
           aggregateId: id,
           actorUserId: request.userId!,
           payload: {
-            status: 'PENDING_BIS',
+            status: 'APPROVED',
             coordNotes: request.body.coordNotes ?? null,
             coordPriority: request.body.coordPriority ?? null,
           },

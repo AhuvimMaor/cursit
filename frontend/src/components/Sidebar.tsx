@@ -11,9 +11,10 @@ type SidebarProps = {
   onNavigate: (page: Page) => void;
   user: AuthUser;
   onLogout: () => void;
+  badges?: Partial<Record<Page, number>>;
 };
 
-export const Sidebar = ({ currentPage, onNavigate, user, onLogout }: SidebarProps) => {
+export const Sidebar = ({ currentPage, onNavigate, user, onLogout, badges }: SidebarProps) => {
   const BRAND_ICON = APP_BRAND.icon;
 
   return (
@@ -100,12 +101,19 @@ export const Sidebar = ({ currentPage, onNavigate, user, onLogout }: SidebarProp
                         </span>
 
                         <span className='min-w-0 flex-1'>
-                          <span
-                            className={`block truncate text-[13px] font-medium leading-tight ${
-                              isActive ? 'text-sky-300' : 'text-slate-300 group-hover:text-white'
-                            }`}
-                          >
-                            {meta.label}
+                          <span className='flex items-center gap-2'>
+                            <span
+                              className={`block truncate text-[13px] font-medium leading-tight ${
+                                isActive ? 'text-sky-300' : 'text-slate-300 group-hover:text-white'
+                              }`}
+                            >
+                              {meta.label}
+                            </span>
+                            {badges?.[page] ? (
+                              <span className='flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white'>
+                                {badges[page]}
+                              </span>
+                            ) : null}
                           </span>
                           <span className='mt-0.5 block truncate text-[11px] leading-tight text-slate-600 group-hover:text-slate-500'>
                             {meta.description}

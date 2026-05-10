@@ -373,15 +373,13 @@ export function InstanceParticipants({
   };
 
   const STATUS_LABELS: Record<string, string> = {
-    PENDING_TL: 'ממתין לראש צוות',
-    PENDING_COORD: 'ממתין לרכז',
+    PENDING_COORD: 'ממתין לאישור קה"ד',
     PENDING_BIS: 'ממתין לאישור',
     APPROVED: 'מאושר',
     REJECTED: 'נדחה',
   };
 
   const STATUS_COLORS: Record<string, string> = {
-    PENDING_TL: 'bg-orange-100 text-orange-700',
     PENDING_COORD: 'bg-yellow-100 text-yellow-700',
     PENDING_BIS: 'bg-blue-100 text-blue-700',
     APPROVED: 'bg-emerald-100 text-emerald-700',

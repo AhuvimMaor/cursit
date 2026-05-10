@@ -6,7 +6,7 @@ const ROLE_PAGES: Record<Role, Page[]> = {
   [Role.BIS_CDR]: ['courses-hub', 'candidacy', 'admin'],
   [Role.BRANCH_COORD]: ['courses-hub', 'approvals'],
   [Role.TEAM_LEADER]: ['courses-hub', 'candidacy'],
-  [Role.TRAINEE]: ['courses-hub', 'my-registrations'],
+  [Role.TRAINEE]: ['my-registrations', 'courses-hub'],
   [Role.UNIT_TRAINING]: ['approvals'],
 };
 

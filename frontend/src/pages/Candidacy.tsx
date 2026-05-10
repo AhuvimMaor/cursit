@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Eye, Loader2, Plus, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Eye, FileText, Loader2, Plus, Upload, XCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { FileUpload } from '../components/FileUpload';
@@ -37,6 +37,7 @@ export const Candidacy = ({ user }: CandidacyProps) => {
   const fetcher = useCallback(() => {
     if (user.role === Role.BIS_CDR) return api.getAllCandidacies();
     if (user.role === Role.BRANCH_COORD) return api.getBranchCandidacies();
+    if (user.role === Role.TRAINEE) return api.getMyCandidacies();
     return api.getMyCandidacySubmissions();
   }, [user.role]);
 
@@ -55,7 +56,9 @@ export const Candidacy = ({ user }: CandidacyProps) => {
       ? 'מועמדות לפיקוד - כל המערכת'
       : user.role === Role.BRANCH_COORD
         ? 'מועמדות לפיקוד - הענף'
-        : 'מועמדות לפיקוד שהגשתי';
+        : user.role === Role.TRAINEE
+          ? 'מועמדויות שהוגשו עבורי'
+          : 'מועמדות לפיקוד שהגשתי';
 
   const openActionModal = (id: number, type: ActionModal['type']) => {
     setActionModal({ id, type });
@@ -410,15 +413,28 @@ function CandidacyForm({ teamId, isAdmin, onSubmitted, onCancel }: CandidacyForm
 
       <div>
         <label className='mb-1 block text-xs font-medium text-foreground'>קבצים מצורפים</label>
-        <input
-          type='file'
-          multiple
-          accept='.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp'
-          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-          className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm file:ml-2 file:rounded file:border-0 file:bg-primary/10 file:px-2 file:py-0.5 file:text-xs file:font-medium file:text-primary'
-        />
+        <label className='flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-4 transition-colors hover:border-primary/40 hover:bg-primary/5'>
+          <Upload size={20} className='text-muted-foreground' />
+          <span className='text-xs font-medium text-muted-foreground'>לחץ לבחירת קבצים</span>
+          <span className='text-[10px] text-muted-foreground/60'>PDF, Word, Excel, תמונות</span>
+          <input
+            type='file'
+            multiple
+            accept='.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp'
+            onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+            className='hidden'
+          />
+        </label>
         {files.length > 0 && (
-          <p className='mt-1 text-xs text-muted-foreground'>{files.length} קבצים נבחרו</p>
+          <div className='mt-2 space-y-1'>
+            {files.map((f, i) => (
+              <div key={i} className='flex items-center gap-2 rounded-md bg-muted/40 px-2 py-1.5 text-xs text-foreground'>
+                <FileText size={12} className='shrink-0 text-muted-foreground' />
+                <span className='truncate'>{f.name}</span>
+                <span className='shrink-0 text-muted-foreground'>({(f.size / 1024).toFixed(0)} KB)</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

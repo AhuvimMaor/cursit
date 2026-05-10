@@ -70,6 +70,21 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
   );
 
   fastify.get(
+    '/mine',
+    { preHandler: [authenticate, requireRole('TRAINEE')] },
+    async (request) => {
+      return prisma.commandCandidacy.findMany({
+        where: { candidateId: request.userId },
+        include: {
+          submittedBy: true,
+          courseInstance: { include: { course: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+  );
+
+  fastify.get(
     '/branch',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
     async (request) => {

@@ -11,6 +11,7 @@ export type NavGroup = {
 };
 
 export const NAV_GROUPS: NavGroup[] = [
+  { id: 'personal', title: 'אזור אישי', hint: 'לו"ז אישי ובקשות', pages: ['my-registrations'] },
   {
     id: 'courses',
     title: 'קורסים ולוחות',
@@ -23,7 +24,6 @@ export const NAV_GROUPS: NavGroup[] = [
     hint: 'מועמדות לפיקוד ואישור רישום לקורס',
     pages: ['candidacy', 'approvals'],
   },
-  { id: 'personal', title: 'אזור אישי', hint: 'רישומים שהגשת', pages: ['my-registrations'] },
   { id: 'admin', title: 'ניהול מערכת', hint: 'למנהלים בלבד', pages: ['admin'] },
 ];
 
@@ -45,8 +45,8 @@ export const PAGE_NAV_META: Record<Page, { label: string; description: string; i
       icon: CheckSquare,
     },
     'my-registrations': {
-      label: 'הרישומים שלי',
-      description: 'סטטוס הבקשות שלך',
+      label: 'האזור שלי',
+      description: 'לו"ז, רישומים ומועמדויות',
       icon: ClipboardList,
     },
     admin: {

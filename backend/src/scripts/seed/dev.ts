@@ -765,11 +765,11 @@ const main = async () => {
   // ── Registrations (מחזורים מתקדמים + דוגמאות על מחזורים נוספים — כולם רואים אותה קטלוג) ──
   await prisma.courseRegistration.createMany({
     data: [
-      { courseInstanceId: I(1), userId: trainees[0].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(1), userId: trainees[0].id, status: 'PENDING_COORD' },
       {
         courseInstanceId: I(1),
         userId: trainees[3].id,
-        status: 'PENDING_BIS',
+        status: 'PENDING_COORD',
         coordApprovedById: coords[0].id,
         coordApprovedAt: new Date(),
         coordPriority: 1,
@@ -792,20 +792,20 @@ const main = async () => {
         status: 'REJECTED',
         rejectionReason: 'אין מקום במחזור הנוכחי. נא לנסות שוב במחזור הבא.',
       },
-      { courseInstanceId: I(2), userId: trainees[2].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(2), userId: trainees[2].id, status: 'PENDING_COORD' },
       { courseInstanceId: I(5), userId: trainees[1].id, status: 'PENDING_COORD' },
       {
         courseInstanceId: I(6),
         userId: trainees[4].id,
-        status: 'PENDING_BIS',
+        status: 'PENDING_COORD',
         coordApprovedById: coords[0].id,
         coordApprovedAt: new Date(),
         coordPriority: 2,
         coordNotes: 'מומלץ — דמו',
       },
-      { courseInstanceId: I(7), userId: trainees[0].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(7), userId: trainees[0].id, status: 'PENDING_COORD' },
       { courseInstanceId: I(9), userId: trainees[3].id, status: 'PENDING_COORD' },
-      { courseInstanceId: I(10), userId: trainees[1].id, status: 'PENDING_TL' },
+      { courseInstanceId: I(10), userId: trainees[1].id, status: 'PENDING_COORD' },
       { courseInstanceId: I(12), userId: trainees[2].id, status: 'APPROVED' },
     ],
   });

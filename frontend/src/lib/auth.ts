@@ -13,7 +13,7 @@ export type AuthUser = {
 
 const AUTH_KEY = 'bisli_user';
 const AUTH_VERSION_KEY = 'bisli_auth_v';
-const CURRENT_AUTH_VERSION = '2';
+const CURRENT_AUTH_VERSION = '3';
 
 export const saveUser = (user: AuthUser) => {
   localStorage.setItem(AUTH_KEY, JSON.stringify(user));
