@@ -1106,8 +1106,7 @@ function AuditTab() {
                   </span>
                 </td>
                 <td className='px-4 py-3 text-xs text-muted-foreground'>
-                  {ENTITY_LABELS[e.entityType] ?? e.entityType}{' '}
-                  {e.entityId ? `#${e.entityId}` : ''}
+                  {ENTITY_LABELS[e.entityType] ?? e.entityType} {e.entityId ? `#${e.entityId}` : ''}
                 </td>
                 <td className='max-w-[200px] truncate px-4 py-3 text-xs text-muted-foreground'>
                   {e.details ? JSON.stringify(e.details).slice(0, 80) : '—'}

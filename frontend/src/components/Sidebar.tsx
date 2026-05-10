@@ -89,7 +89,6 @@ export const Sidebar = ({ currentPage, onNavigate, user, onLogout }: SidebarProp
                             : 'hover:bg-white/6'
                         }`}
                       >
-
                         <span
                           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors ${
                             isActive

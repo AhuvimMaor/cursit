@@ -2567,7 +2567,11 @@ export const api = {
     fetchJson<AttachedFile[]>(`/files/list/${entityType}/${entityId}`),
   getRegistrationFiles: (registrationId: number) =>
     fetchJson<AttachedFile[]>(`/files/list/registration/${registrationId}`),
-  uploadFile: async (entityType: 'registration' | 'candidacy', entityId: number, file: File): Promise<AttachedFile> => {
+  uploadFile: async (
+    entityType: 'registration' | 'candidacy',
+    entityId: number,
+    file: File,
+  ): Promise<AttachedFile> => {
     const formData = new FormData();
     formData.append('file', file);
     const user = JSON.parse(localStorage.getItem('bisli_user') || '{}');
@@ -2581,8 +2585,7 @@ export const api = {
   },
   getFileDownloadUrl: (fileId: number) => `${API_BASE}/files/download/${fileId}`,
   getFileViewUrl: (fileId: number) => `${API_BASE}/files/view/${fileId}`,
-  deleteFile: (fileId: number) =>
-    fetchJson<void>(`/files/${fileId}`, { method: 'DELETE' }),
+  deleteFile: (fileId: number) => fetchJson<void>(`/files/${fileId}`, { method: 'DELETE' }),
 
   // Info
   getInfoPages: () => fetchJson<InfoPage[]>('/info'),

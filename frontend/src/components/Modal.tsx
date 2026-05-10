@@ -43,7 +43,13 @@ export const Modal = ({ open, onClose, title, children, size = 'md' }: ModalProp
   if (!open) return null;
 
   const maxWidth =
-    size === 'sm' ? 'max-w-sm' : size === 'lg' ? 'max-w-3xl' : size === 'xl' ? 'max-w-5xl' : 'max-w-lg';
+    size === 'sm'
+      ? 'max-w-sm'
+      : size === 'lg'
+        ? 'max-w-3xl'
+        : size === 'xl'
+          ? 'max-w-5xl'
+          : 'max-w-lg';
 
   return createPortal(
     <div

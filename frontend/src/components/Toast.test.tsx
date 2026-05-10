@@ -55,9 +55,7 @@ describe('ToastProvider + toast singleton', () => {
     act(() => toast.success('הודעה זמנית'));
     expect(await screen.findByText('הודעה זמנית')).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(4000));
-    await waitFor(() =>
-      expect(screen.queryByText('הודעה זמנית')).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.queryByText('הודעה זמנית')).not.toBeInTheDocument());
   });
 
   it('manual dismiss via X button removes toast immediately', async () => {

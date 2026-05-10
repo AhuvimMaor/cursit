@@ -1,6 +1,8 @@
 import type { PhaseType } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 
+import { backfillEventsIfMissing } from '../backfill-events.js';
+
 const prisma = new PrismaClient();
 
 const main = async () => {
@@ -831,6 +833,10 @@ const main = async () => {
   });
 
   console.log('Created 2 info pages');
+
+  await backfillEventsIfMissing(prisma);
+  console.log('Backfilled Event rows for candidacies/registrations');
+
   console.log('Seed complete!');
 };
 

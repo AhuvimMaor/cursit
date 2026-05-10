@@ -1,12 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import {
-  BookOpen,
-  CheckSquare,
-  ClipboardList,
-  LayoutGrid,
-  Settings,
-  Users,
-} from 'lucide-react';
+import { BookOpen, CheckSquare, ClipboardList, LayoutGrid, Settings, Users } from 'lucide-react';
 
 import type { Page } from './permissions';
 

@@ -1,7 +1,6 @@
 import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 
-import { ConfirmDialog } from './ConfirmDialog';
 import type { CoursePhase } from '../lib/api';
 import { api } from '../lib/api';
 import {
@@ -9,6 +8,7 @@ import {
   isPastLocalCalendarEnd,
   isStrictlyBeforeLocalCalendarStart,
 } from '../lib/calendarRange';
+import { ConfirmDialog } from './ConfirmDialog';
 
 export const PHASE_COLORS: Record<string, string> = {
   CANDIDACY_SUBMISSION: 'bg-amber-400',

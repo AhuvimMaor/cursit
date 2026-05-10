@@ -1,12 +1,4 @@
-import {
-  BookOpen,
-  Check,
-  Clock,
-  LayoutGrid,
-  Loader2,
-  MapPin,
-  Star,
-} from 'lucide-react';
+import { BookOpen, Check, Clock, LayoutGrid, Loader2, MapPin, Star } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { CourseInstancePhasesPanel } from '../components/CourseInstancePhasesPanel';
@@ -280,10 +272,7 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
                 anyCandidacyRegistrationOpenToday(row.phases);
 
               return (
-                <div
-                  key={row.instanceId}
-                  className='relative flex min-w-0 flex-col gap-2.5'
-                >
+                <div key={row.instanceId} className='relative flex min-w-0 flex-col gap-2.5'>
                   <div
                     className={`flex min-h-0 flex-col rounded-xl border transition-all cursor-pointer ${
                       isDone
@@ -413,9 +402,7 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => e.stopPropagation()}
                       >
-                        <span className='text-[10px] font-medium text-muted-foreground'>
-                          פרטים
-                        </span>
+                        <span className='text-[10px] font-medium text-muted-foreground'>פרטים</span>
                         <div className='flex items-center gap-1.5'>
                           {showRegister(row) && !regStatus && (
                             <button
@@ -444,7 +431,6 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
                       </div>
                     </div>
                   </div>
-
                 </div>
               );
             })}
@@ -498,7 +484,10 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
       {/* Registration modal with file upload */}
       <Modal
         open={registerModalId !== null}
-        onClose={() => { setRegisterModalId(null); setRegFiles([]); }}
+        onClose={() => {
+          setRegisterModalId(null);
+          setRegFiles([]);
+        }}
         title='הרשמה למחזור'
         size='sm'
       >
@@ -507,7 +496,9 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
             ניתן לצרף קבצים לבקשת הרישום (אישור מפקד, מסמכים נוספים)
           </p>
           <div>
-            <label className='mb-1 block text-xs font-medium text-foreground'>קבצים מצורפים (אופציונלי)</label>
+            <label className='mb-1 block text-xs font-medium text-foreground'>
+              קבצים מצורפים (אופציונלי)
+            </label>
             <input
               type='file'
               multiple
@@ -522,7 +513,10 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
           <div className='flex justify-end gap-2 pt-2'>
             <button
               type='button'
-              onClick={() => { setRegisterModalId(null); setRegFiles([]); }}
+              onClick={() => {
+                setRegisterModalId(null);
+                setRegFiles([]);
+              }}
               className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'
             >
               ביטול
@@ -578,19 +572,20 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
                     </button>
                   )}
                   {(user.role === Role.TEAM_LEADER || user.role === Role.BIS_CDR) &&
-                    (selectedRow.courseType === 'FOUNDATION' || selectedRow.courseType === 'LEADERSHIP') &&
+                    (selectedRow.courseType === 'FOUNDATION' ||
+                      selectedRow.courseType === 'LEADERSHIP') &&
                     selectedRow.instanceStatus === 'OPEN' && (
-                    <button
-                      type='button'
-                      onClick={() => {
-                        setExpandedId(null);
-                        setCandidacyInstanceId(selectedRow.instanceId);
-                      }}
-                      className='rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-amber-600'
-                    >
-                      הגש מועמדות לפיקוד
-                    </button>
-                  )}
+                      <button
+                        type='button'
+                        onClick={() => {
+                          setExpandedId(null);
+                          setCandidacyInstanceId(selectedRow.instanceId);
+                        }}
+                        className='rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-amber-600'
+                      >
+                        הגש מועמדות לפיקוד
+                      </button>
+                    )}
                   {rowRegStatus != null && (
                     <span
                       className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
@@ -689,7 +684,10 @@ function CandidacyQuickForm({ instanceId, user, onClose }: CandidacyQuickFormPro
   const [error, setError] = useState('');
 
   const handleSubmit = async () => {
-    if (!candidateId) { setError('יש לבחור מועמד'); return; }
+    if (!candidateId) {
+      setError('יש לבחור מועמד');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
@@ -726,7 +724,9 @@ function CandidacyQuickForm({ instanceId, user, onClose }: CandidacyQuickFormPro
             >
               <option value=''>בחר...</option>
               {members?.map((m: User) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
               ))}
             </select>
           </div>
@@ -769,7 +769,11 @@ function CandidacyQuickForm({ instanceId, user, onClose }: CandidacyQuickFormPro
           {error && <p className='text-xs text-red-600'>{error}</p>}
 
           <div className='flex justify-end gap-2 pt-1'>
-            <button type='button' onClick={onClose} className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'>
+            <button
+              type='button'
+              onClick={onClose}
+              className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'
+            >
               ביטול
             </button>
             <button

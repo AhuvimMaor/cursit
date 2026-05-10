@@ -1,6 +1,8 @@
 import type { Prisma } from '@prisma/client';
 import type { FastifyInstance } from 'fastify';
+import { randomUUID } from 'node:crypto';
 
+import { appendEvent } from '../lib/append-event.js';
 import { logEvent } from '../lib/eventLog.js';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
@@ -30,15 +32,49 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     { preHandler: [authenticate, requireRole('BIS_CDR')] },
     async (request, reply) => {
       const { courseInstanceId, userId, status } = request.body;
-      const registration = await prisma.courseRegistration.create({
-        data: {
-          courseInstanceId,
-          userId,
-          status: (status as 'APPROVED' | 'PENDING_TL') ?? 'APPROVED',
-          bisApprovedById: request.userId,
-          bisApprovedAt: new Date(),
-        },
-        include: { user: true, courseInstance: { include: { course: true } } },
+      const resolvedStatus = (status as 'APPROVED' | 'PENDING_TL') ?? 'APPROVED';
+      const flowId = randomUUID();
+      const registration = await prisma.$transaction(async (tx) => {
+        const created = await tx.courseRegistration.create({
+          data: {
+            courseInstanceId,
+            userId,
+            status: resolvedStatus,
+            bisApprovedById: request.userId,
+            bisApprovedAt: new Date(),
+          },
+          include: { user: true, courseInstance: { include: { course: true } } },
+        });
+        if (resolvedStatus === 'APPROVED') {
+          await appendEvent(tx, {
+            eventType: 'registration.bis_approved',
+            aggregateType: 'REGISTRATION',
+            aggregateId: created.id,
+            actorUserId: request.userId!,
+            payload: {
+              status: 'APPROVED',
+              bisNotes: null,
+              manual: true,
+              courseInstanceId,
+              userId,
+            },
+            flowId,
+          });
+        } else {
+          await appendEvent(tx, {
+            eventType: 'registration.manual_intake',
+            aggregateType: 'REGISTRATION',
+            aggregateId: created.id,
+            actorUserId: request.userId!,
+            payload: {
+              status: 'PENDING_TL',
+              courseInstanceId,
+              userId,
+            },
+            flowId,
+          });
+        }
+        return created;
       });
       await logEvent(request.userId!, 'REGISTER', 'REGISTRATION', registration.id, {
         userId,
@@ -54,12 +90,28 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     { preHandler: [authenticate, requireRole('TRAINEE')] },
     async (request, reply) => {
       const { courseInstanceId, formData } = request.body;
-      const registration = await prisma.courseRegistration.create({
-        data: {
-          courseInstanceId,
-          userId: request.userId!,
-          formData: formData === undefined ? undefined : (formData as Prisma.InputJsonValue),
-        },
+      const flowId = randomUUID();
+      const registration = await prisma.$transaction(async (tx) => {
+        const created = await tx.courseRegistration.create({
+          data: {
+            courseInstanceId,
+            userId: request.userId!,
+            formData: formData === undefined ? undefined : (formData as Prisma.InputJsonValue),
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'registration.submitted',
+          aggregateType: 'REGISTRATION',
+          aggregateId: created.id,
+          actorUserId: request.userId!,
+          payload: {
+            courseInstanceId,
+            userId: request.userId,
+            formData: formData === undefined ? null : (formData as Prisma.InputJsonValue),
+          },
+          flowId,
+        });
+        return created;
       });
       await logEvent(request.userId!, 'REGISTER', 'REGISTRATION', registration.id, {
         courseInstanceId,
@@ -115,14 +167,30 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     '/:id/approve-tl',
     { preHandler: [authenticate, requireRole('TEAM_LEADER')] },
     async (request) => {
-      return prisma.courseRegistration.update({
-        where: { id: Number(request.params.id) },
-        data: {
-          status: 'PENDING_COORD',
-          tlApprovedById: request.userId,
-          tlApprovedAt: new Date(),
-          tlNotes: request.body.tlNotes,
-        },
+      const id = Number(request.params.id);
+      const flowId = randomUUID();
+      return prisma.$transaction(async (tx) => {
+        const updated = await tx.courseRegistration.update({
+          where: { id },
+          data: {
+            status: 'PENDING_COORD',
+            tlApprovedById: request.userId,
+            tlApprovedAt: new Date(),
+            tlNotes: request.body.tlNotes,
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'registration.tl_approved',
+          aggregateType: 'REGISTRATION',
+          aggregateId: id,
+          actorUserId: request.userId!,
+          payload: {
+            status: 'PENDING_COORD',
+            tlNotes: request.body.tlNotes ?? null,
+          },
+          flowId,
+        });
+        return updated;
       });
     },
   );
@@ -131,15 +199,32 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     '/:id/prioritize',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
     async (request) => {
-      return prisma.courseRegistration.update({
-        where: { id: Number(request.params.id) },
-        data: {
-          status: 'PENDING_BIS',
-          coordApprovedById: request.userId,
-          coordApprovedAt: new Date(),
-          coordNotes: request.body.coordNotes,
-          coordPriority: request.body.coordPriority,
-        },
+      const id = Number(request.params.id);
+      const flowId = randomUUID();
+      return prisma.$transaction(async (tx) => {
+        const updated = await tx.courseRegistration.update({
+          where: { id },
+          data: {
+            status: 'PENDING_BIS',
+            coordApprovedById: request.userId,
+            coordApprovedAt: new Date(),
+            coordNotes: request.body.coordNotes,
+            coordPriority: request.body.coordPriority,
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'registration.coord_approved',
+          aggregateType: 'REGISTRATION',
+          aggregateId: id,
+          actorUserId: request.userId!,
+          payload: {
+            status: 'PENDING_BIS',
+            coordNotes: request.body.coordNotes ?? null,
+            coordPriority: request.body.coordPriority ?? null,
+          },
+          flowId,
+        });
+        return updated;
       });
     },
   );
@@ -160,14 +245,30 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     '/:id/approve-final',
     { preHandler: [authenticate, requireRole('BIS_CDR')] },
     async (request) => {
-      return prisma.courseRegistration.update({
-        where: { id: Number(request.params.id) },
-        data: {
-          status: 'APPROVED',
-          bisApprovedById: request.userId,
-          bisApprovedAt: new Date(),
-          bisNotes: request.body.bisNotes,
-        },
+      const id = Number(request.params.id);
+      const flowId = randomUUID();
+      return prisma.$transaction(async (tx) => {
+        const updated = await tx.courseRegistration.update({
+          where: { id },
+          data: {
+            status: 'APPROVED',
+            bisApprovedById: request.userId,
+            bisApprovedAt: new Date(),
+            bisNotes: request.body.bisNotes,
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'registration.bis_approved',
+          aggregateType: 'REGISTRATION',
+          aggregateId: id,
+          actorUserId: request.userId!,
+          payload: {
+            status: 'APPROVED',
+            bisNotes: request.body.bisNotes ?? null,
+          },
+          flowId,
+        });
+        return updated;
       });
     },
   );
@@ -176,12 +277,30 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     '/:id/reject',
     { preHandler: [authenticate, requireRole('BRANCH_COORD', 'BIS_CDR')] },
     async (request) => {
-      return prisma.courseRegistration.update({
-        where: { id: Number(request.params.id) },
-        data: {
-          status: 'REJECTED',
-          rejectionReason: request.body.rejectionReason,
-        },
+      const id = Number(request.params.id);
+      const flowId = randomUUID();
+      return prisma.$transaction(async (tx) => {
+        const prev = await tx.courseRegistration.findUniqueOrThrow({ where: { id } });
+        const updated = await tx.courseRegistration.update({
+          where: { id },
+          data: {
+            status: 'REJECTED',
+            rejectionReason: request.body.rejectionReason,
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'registration.rejected',
+          aggregateType: 'REGISTRATION',
+          aggregateId: id,
+          actorUserId: request.userId!,
+          payload: {
+            previousStatus: prev.status,
+            rejectionReason: request.body.rejectionReason ?? null,
+            rejectedByRole: request.userRole ?? null,
+          },
+          flowId,
+        });
+        return updated;
       });
     },
   );

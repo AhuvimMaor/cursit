@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { ToastProvider } from '../components/ToastProvider';
 import { api } from '../lib/api';
+import type { AuthUser } from '../lib/auth';
 import { Role } from '../lib/roles';
 import { Approvals } from './Approvals';
 
@@ -58,7 +59,7 @@ const PENDING_BIS_REG = {
 const renderApprovals = (user = TL_USER) =>
   render(
     <ToastProvider>
-      <Approvals user={user as any} />
+      <Approvals user={user as AuthUser} />
     </ToastProvider>,
   );
 
@@ -146,9 +147,7 @@ describe('Approvals page', () => {
     const submitBtn = buttons[buttons.length - 1] as HTMLButtonElement;
     await userEvent.click(submitBtn);
 
-    await waitFor(() =>
-      expect(api.approveRegistrationTl).toHaveBeenCalledWith(10, undefined),
-    );
+    await waitFor(() => expect(api.approveRegistrationTl).toHaveBeenCalledWith(10, undefined));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
@@ -165,7 +164,7 @@ describe('Approvals page', () => {
   });
 
   it('BIS_CDR sees final approve and reject buttons', async () => {
-    renderApprovals(BIS_USER as any);
+    renderApprovals(BIS_USER as AuthUser);
     expect(await screen.findByText('דנה לוי')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /אשר סופי/ })).toBeInTheDocument();
   });

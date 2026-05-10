@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 import { logEvent } from '../lib/eventLog.js';
 import { prisma } from '../lib/prisma.js';
@@ -20,7 +20,11 @@ const ALLOWED_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
-async function processUpload(request: { file: () => Promise<{ filename: string; mimetype: string; file: AsyncIterable<Buffer> } | undefined> }) {
+async function processUpload(request: {
+  file: () => Promise<
+    { filename: string; mimetype: string; file: AsyncIterable<Buffer> } | undefined
+  >;
+}) {
   const file = await request.file();
   if (!file) return { error: 'No file provided' };
   if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) return { error: 'File type not allowed' };
@@ -46,7 +50,9 @@ export const fileRoutes = async (fastify: FastifyInstance) => {
     { preHandler: [authenticate] },
     async (request, reply) => {
       const registrationId = Number(request.params.registrationId);
-      const registration = await prisma.courseRegistration.findUnique({ where: { id: registrationId } });
+      const registration = await prisma.courseRegistration.findUnique({
+        where: { id: registrationId },
+      });
       if (!registration) return reply.status(404).send({ error: 'Registration not found' });
 
       const result = await processUpload(request);
@@ -132,7 +138,9 @@ export const fileRoutes = async (fastify: FastifyInstance) => {
     { preHandler: [authenticate] },
     async (request, reply) => {
       const registrationId = Number(request.params.registrationId);
-      const registration = await prisma.courseRegistration.findUnique({ where: { id: registrationId } });
+      const registration = await prisma.courseRegistration.findUnique({
+        where: { id: registrationId },
+      });
       if (!registration) return reply.status(404).send({ error: 'Registration not found' });
 
       const result = await processUpload(request);
@@ -204,41 +212,40 @@ export const fileRoutes = async (fastify: FastifyInstance) => {
   );
 
   // Download (no auth - browser can't send headers on <a> clicks)
-  fastify.get<{ Params: { id: string } }>(
-    '/download/:id',
-    async (request, reply) => {
-      const file = await prisma.attachedFile.findUnique({ where: { id: Number(request.params.id) } });
-      if (!file) return reply.status(404).send({ error: 'File not found' });
+  fastify.get<{ Params: { id: string } }>('/download/:id', async (request, reply) => {
+    const file = await prisma.attachedFile.findUnique({ where: { id: Number(request.params.id) } });
+    if (!file) return reply.status(404).send({ error: 'File not found' });
 
-      const buffer = await storage.getBuffer(file.storagePath);
-      return reply
-        .header('Content-Type', file.mimeType)
-        .header('Content-Disposition', `attachment; filename="${encodeURIComponent(file.originalName)}"`)
-        .send(buffer);
-    },
-  );
+    const buffer = await storage.getBuffer(file.storagePath);
+    return reply
+      .header('Content-Type', file.mimeType)
+      .header(
+        'Content-Disposition',
+        `attachment; filename="${encodeURIComponent(file.originalName)}"`,
+      )
+      .send(buffer);
+  });
 
   // View inline (no auth - same reason)
-  fastify.get<{ Params: { id: string } }>(
-    '/view/:id',
-    async (request, reply) => {
-      const file = await prisma.attachedFile.findUnique({ where: { id: Number(request.params.id) } });
-      if (!file) return reply.status(404).send({ error: 'File not found' });
+  fastify.get<{ Params: { id: string } }>('/view/:id', async (request, reply) => {
+    const file = await prisma.attachedFile.findUnique({ where: { id: Number(request.params.id) } });
+    if (!file) return reply.status(404).send({ error: 'File not found' });
 
-      const buffer = await storage.getBuffer(file.storagePath);
-      return reply
-        .header('Content-Type', file.mimeType)
-        .header('Content-Disposition', `inline; filename="${encodeURIComponent(file.originalName)}"`)
-        .send(buffer);
-    },
-  );
+    const buffer = await storage.getBuffer(file.storagePath);
+    return reply
+      .header('Content-Type', file.mimeType)
+      .header('Content-Disposition', `inline; filename="${encodeURIComponent(file.originalName)}"`)
+      .send(buffer);
+  });
 
   // Delete
   fastify.delete<{ Params: { id: string } }>(
     '/:id',
     { preHandler: [authenticate] },
     async (request, reply) => {
-      const file = await prisma.attachedFile.findUnique({ where: { id: Number(request.params.id) } });
+      const file = await prisma.attachedFile.findUnique({
+        where: { id: Number(request.params.id) },
+      });
       if (!file) return reply.status(404).send({ error: 'File not found' });
 
       await storage.delete(file.storagePath);

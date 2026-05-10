@@ -18,9 +18,7 @@ export const ScreenGuide = ({
   className = '',
 }: ScreenGuideProps) => {
   return (
-    <div
-      className={`rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm ${className}`}
-    >
+    <div className={`rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm ${className}`}>
       <div className='flex flex-wrap items-start justify-between gap-3'>
         <div className='min-w-0 flex-1'>
           {eyebrow ? (

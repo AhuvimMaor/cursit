@@ -19,8 +19,7 @@ const ACCENT_BAR: Record<NonNullable<CardProps['accent']>, string> = {
 
 const BASE =
   'relative rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-150';
-const HOVER =
-  'hover:border-slate-300 hover:shadow-md hover:-translate-y-[1px]';
+const HOVER = 'hover:border-slate-300 hover:shadow-md hover:-translate-y-[1px]';
 const ACCENT_BASE =
   'before:absolute before:top-3 before:bottom-3 before:right-0 before:w-0.5 before:rounded-full';
 
@@ -40,9 +39,5 @@ export const Card = ({ children, className = '', onClick, accent = 'none' }: Car
     );
   }
 
-  return (
-    <div className={`${BASE} ${accentClass} ${className}`}>
-      {children}
-    </div>
-  );
+  return <div className={`${BASE} ${accentClass} ${className}`}>{children}</div>;
 };

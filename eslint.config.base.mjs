@@ -36,11 +36,6 @@ export const commonRules = {
     },
     {
       selector: 'variable',
-      format: ['camelCase'],
-      leadingUnderscore: 'allow',
-    },
-    {
-      selector: 'variable',
       modifiers: ['const', 'exported'],
       format: ['UPPER_CASE', 'camelCase', 'PascalCase'],
       leadingUnderscore: 'allow',
@@ -48,7 +43,12 @@ export const commonRules = {
     {
       selector: 'variable',
       modifiers: ['const'],
-      format: ['UPPER_CASE', 'camelCase'],
+      format: ['UPPER_CASE', 'camelCase', 'PascalCase'],
+      leadingUnderscore: 'allow',
+    },
+    {
+      selector: 'variable',
+      format: ['camelCase'],
       leadingUnderscore: 'allow',
     },
     {

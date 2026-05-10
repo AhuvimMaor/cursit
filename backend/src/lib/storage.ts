@@ -1,17 +1,22 @@
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createWriteStream } from 'fs';
 import { mkdir, rm } from 'fs/promises';
 import { join } from 'path';
-import { pipeline } from 'stream/promises';
 import type { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 
-export interface StorageProvider {
+export type StorageProvider = {
   upload(key: string, body: Buffer | Readable, contentType: string): Promise<void>;
   getDownloadUrl(key: string): Promise<string>;
   getBuffer(key: string): Promise<Buffer>;
   delete(key: string): Promise<void>;
-}
+};
 
 class LocalStorage implements StorageProvider {
   private basePath: string;

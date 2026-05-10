@@ -1,11 +1,6 @@
 import { Role } from './roles';
 
-export type Page =
-  | 'courses-hub'
-  | 'candidacy'
-  | 'approvals'
-  | 'my-registrations'
-  | 'admin';
+export type Page = 'courses-hub' | 'candidacy' | 'approvals' | 'my-registrations' | 'admin';
 
 const ROLE_PAGES: Record<Role, Page[]> = {
   [Role.BIS_CDR]: ['courses-hub', 'candidacy', 'admin'],

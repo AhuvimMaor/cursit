@@ -1,5 +1,7 @@
 import type { FastifyInstance } from 'fastify';
+import { randomUUID } from 'node:crypto';
 
+import { appendEvent } from '../lib/append-event.js';
 import { logEvent } from '../lib/eventLog.js';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
@@ -17,14 +19,32 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     { preHandler: [authenticate, requireRole('TEAM_LEADER', 'BIS_CDR')] },
     async (request, reply) => {
       const { courseInstanceId, candidateId, motivation, commanderNotes } = request.body;
-      const candidacy = await prisma.commandCandidacy.create({
-        data: {
-          courseInstanceId,
-          candidateId,
-          submittedById: request.userId!,
-          motivation,
-          commanderNotes,
-        },
+      const flowId = randomUUID();
+      const candidacy = await prisma.$transaction(async (tx) => {
+        const created = await tx.commandCandidacy.create({
+          data: {
+            courseInstanceId,
+            candidateId,
+            submittedById: request.userId!,
+            motivation,
+            commanderNotes,
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'candidacy.submitted',
+          aggregateType: 'CANDIDACY',
+          aggregateId: created.id,
+          actorUserId: request.userId!,
+          payload: {
+            courseInstanceId,
+            candidateId,
+            submittedById: request.userId,
+            motivation,
+            commanderNotes,
+          },
+          flowId,
+        });
+        return created;
       });
       await logEvent(request.userId!, 'SUBMIT', 'CANDIDACY', candidacy.id, {
         candidateId,
@@ -71,9 +91,22 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     '/:id/coord-review',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
     async (request) => {
-      return prisma.commandCandidacy.update({
-        where: { id: Number(request.params.id) },
-        data: { status: 'COORD_REVIEWED' },
+      const id = Number(request.params.id);
+      const flowId = randomUUID();
+      return prisma.$transaction(async (tx) => {
+        const updated = await tx.commandCandidacy.update({
+          where: { id },
+          data: { status: 'COORD_REVIEWED' },
+        });
+        await appendEvent(tx, {
+          eventType: 'candidacy.coord_reviewed',
+          aggregateType: 'CANDIDACY',
+          aggregateId: id,
+          actorUserId: request.userId!,
+          payload: { status: 'COORD_REVIEWED' },
+          flowId,
+        });
+        return updated;
       });
     },
   );
@@ -94,13 +127,29 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     '/:id/approve',
     { preHandler: [authenticate, requireRole('BIS_CDR')] },
     async (request) => {
-      const result = await prisma.commandCandidacy.update({
-        where: { id: Number(request.params.id) },
-        data: {
-          status: 'APPROVED',
-          reviewedById: request.userId,
-          reviewNotes: request.body.reviewNotes,
-        },
+      const id = Number(request.params.id);
+      const flowId = randomUUID();
+      const result = await prisma.$transaction(async (tx) => {
+        const updated = await tx.commandCandidacy.update({
+          where: { id },
+          data: {
+            status: 'APPROVED',
+            reviewedById: request.userId,
+            reviewNotes: request.body.reviewNotes,
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'candidacy.approved',
+          aggregateType: 'CANDIDACY',
+          aggregateId: id,
+          actorUserId: request.userId!,
+          payload: {
+            status: 'APPROVED',
+            reviewNotes: request.body.reviewNotes ?? null,
+          },
+          flowId,
+        });
+        return updated;
       });
       await logEvent(request.userId!, 'APPROVE', 'CANDIDACY', result.id);
       return result;
@@ -111,13 +160,29 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     '/:id/reject',
     { preHandler: [authenticate, requireRole('BIS_CDR')] },
     async (request) => {
-      const result = await prisma.commandCandidacy.update({
-        where: { id: Number(request.params.id) },
-        data: {
-          status: 'REJECTED',
-          reviewedById: request.userId,
-          reviewNotes: request.body.reviewNotes,
-        },
+      const id = Number(request.params.id);
+      const flowId = randomUUID();
+      const result = await prisma.$transaction(async (tx) => {
+        const updated = await tx.commandCandidacy.update({
+          where: { id },
+          data: {
+            status: 'REJECTED',
+            reviewedById: request.userId,
+            reviewNotes: request.body.reviewNotes,
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'candidacy.rejected',
+          aggregateType: 'CANDIDACY',
+          aggregateId: id,
+          actorUserId: request.userId!,
+          payload: {
+            status: 'REJECTED',
+            reviewNotes: request.body.reviewNotes ?? null,
+          },
+          flowId,
+        });
+        return updated;
       });
       await logEvent(request.userId!, 'REJECT', 'CANDIDACY', result.id);
       return result;

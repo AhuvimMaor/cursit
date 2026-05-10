@@ -7,8 +7,8 @@ type ImportMetaEnv = {
    * - `https://your-api.example.com/api`
    */
   readonly VITE_API_BASE_URL?: string;
-}
+};
 
 type ImportMeta = {
   readonly env: ImportMetaEnv;
-}
+};

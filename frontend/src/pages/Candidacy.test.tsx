@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { ToastProvider } from '../components/ToastProvider';
 import { api } from '../lib/api';
+import type { AuthUser } from '../lib/auth';
 import { Role } from '../lib/roles';
 import { Candidacy } from './Candidacy';
 
@@ -43,7 +44,7 @@ const PENDING_CANDIDACY = {
 const renderCandidacy = (user = BIS_USER) =>
   render(
     <ToastProvider>
-      <Candidacy user={user as any} />
+      <Candidacy user={user as AuthUser} />
     </ToastProvider>,
   );
 
@@ -100,9 +101,7 @@ describe('Candidacy page', () => {
     const submitBtn = [...dialog.querySelectorAll('button')].at(-1) as HTMLButtonElement;
     await userEvent.click(submitBtn);
 
-    await waitFor(() =>
-      expect(api.approveCandidacy).toHaveBeenCalledWith(100, undefined),
-    );
+    await waitFor(() => expect(api.approveCandidacy).toHaveBeenCalledWith(100, undefined));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
@@ -130,9 +129,7 @@ describe('Candidacy page', () => {
     const submitBtn = [...dialog.querySelectorAll('button')].at(-1) as HTMLButtonElement;
     await userEvent.click(submitBtn);
 
-    await waitFor(() =>
-      expect(api.rejectCandidacy).toHaveBeenCalledWith(100, 'לא עומד בדרישות'),
-    );
+    await waitFor(() => expect(api.rejectCandidacy).toHaveBeenCalledWith(100, 'לא עומד בדרישות'));
   });
 
   it('closing modal via Escape does not submit', async () => {
@@ -150,7 +147,7 @@ describe('Candidacy page', () => {
     // TL sees submit button
     render(
       <ToastProvider>
-        <Candidacy user={TL_USER as any} />
+        <Candidacy user={TL_USER as AuthUser} />
       </ToastProvider>,
     );
     await screen.findByRole('button', { name: /הגש מועמדות/ });
@@ -163,7 +160,7 @@ describe('Candidacy page', () => {
   it('empty state shows when no candidacies for trainee', async () => {
     render(
       <ToastProvider>
-        <Candidacy user={TRAINEE_USER as any} />
+        <Candidacy user={TRAINEE_USER as AuthUser} />
       </ToastProvider>,
     );
     expect(await screen.findByText('אין מועמדויות עדיין')).toBeInTheDocument();

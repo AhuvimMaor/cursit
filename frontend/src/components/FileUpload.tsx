@@ -18,10 +18,7 @@ const formatSize = (bytes: number) => {
 };
 
 export const FileUpload = ({ entityType, entityId, canUpload = true }: FileUploadProps) => {
-  const fetcher = useCallback(
-    () => api.getFiles(entityType, entityId),
-    [entityType, entityId],
-  );
+  const fetcher = useCallback(() => api.getFiles(entityType, entityId), [entityType, entityId]);
   const { data: files, loading, refetch } = useApi(fetcher);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,16 +50,10 @@ export const FileUpload = ({ entityType, entityId, canUpload = true }: FileUploa
   return (
     <div className='mt-3 border-t border-border pt-3'>
       <div className='flex items-center justify-between'>
-        <span className='text-xs font-medium text-foreground'>
-          קבצים ({files?.length ?? 0})
-        </span>
+        <span className='text-xs font-medium text-foreground'>קבצים ({files?.length ?? 0})</span>
         {canUpload && (
           <label className='flex cursor-pointer items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground'>
-            {uploading ? (
-              <Loader2 size={12} className='animate-spin' />
-            ) : (
-              <Upload size={12} />
-            )}
+            {uploading ? <Loader2 size={12} className='animate-spin' /> : <Upload size={12} />}
             העלאה
             <input
               ref={inputRef}
@@ -80,10 +71,7 @@ export const FileUpload = ({ entityType, entityId, canUpload = true }: FileUploa
       {files && files.length > 0 && (
         <div className='mt-2 space-y-1.5'>
           {files.map((f: AttachedFile) => (
-            <div
-              key={f.id}
-              className='flex items-center gap-2 rounded-md bg-muted/40 px-2 py-1.5'
-            >
+            <div key={f.id} className='flex items-center gap-2 rounded-md bg-muted/40 px-2 py-1.5'>
               <FileText size={14} className='shrink-0 text-muted-foreground' />
               <div className='min-w-0 flex-1'>
                 <p className='truncate text-xs font-medium text-foreground'>{f.originalName}</p>

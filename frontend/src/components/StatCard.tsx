@@ -17,9 +17,7 @@ export const StatCard = ({ title, value, subtitle, icon, color, onClick }: StatC
           <p className='mt-1.5 text-3xl font-bold tabular-nums text-slate-900'>{value}</p>
           {subtitle && <p className='mt-1 text-xs text-slate-400'>{subtitle}</p>}
         </div>
-        <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${color}`}
-        >
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${color}`}>
           {icon}
         </div>
       </div>
@@ -38,9 +36,5 @@ export const StatCard = ({ title, value, subtitle, icon, color, onClick }: StatC
     );
   }
 
-  return (
-    <div className='rounded-xl border border-slate-200 bg-white p-5 shadow-sm'>
-      {inner}
-    </div>
-  );
+  return <div className='rounded-xl border border-slate-200 bg-white p-5 shadow-sm'>{inner}</div>;
 };
