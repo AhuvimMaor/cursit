@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react';
 
 import { Sidebar } from './components/Sidebar';
+import { ToastProvider } from './components/ToastProvider';
 import type { AuthUser } from './lib/auth';
 import { clearUser, loadUser, saveUser } from './lib/auth';
 import type { Page } from './lib/permissions';
 import { canAccess, getDefaultPage } from './lib/permissions';
+import { Admin } from './pages/Admin';
 import { Approvals } from './pages/Approvals';
 import { Candidacy } from './pages/Candidacy';
-import { Courses } from './pages/Courses';
-import { Dashboard } from './pages/Dashboard';
-import { Gantt } from './pages/Gantt';
-import { Info } from './pages/Info';
+import { CoursesHub } from './pages/CoursesHub';
 import { Login } from './pages/Login';
 import { MyRegistrations } from './pages/MyRegistrations';
 
 export const App = () => {
   const [user, setUser] = useState<AuthUser | null>(loadUser);
-  const [page, setPage] = useState<Page>('dashboard');
+  const [page, setPage] = useState<Page>('courses-hub');
+  const goToPage = (next: Page) => {
+    setPage(next);
+  };
 
   useEffect(() => {
     if (user && !canAccess(user.role, page)) {
@@ -33,36 +35,47 @@ export const App = () => {
   const handleLogout = () => {
     clearUser();
     setUser(null);
-    setPage('dashboard');
+    setPage('courses-hub');
   };
 
   if (!user) {
-    return <Login onLogin={handleLogin} />;
+    return (
+      <ToastProvider>
+        <Login onLogin={handleLogin} />
+      </ToastProvider>
+    );
   }
 
   const renderPage = () => {
     switch (page) {
-      case 'dashboard':
-        return <Dashboard user={user} />;
-      case 'gantt':
-        return <Gantt />;
-      case 'courses':
-        return <Courses user={user} />;
+      case 'courses-hub':
+        return <CoursesHub user={user} />;
       case 'candidacy':
         return <Candidacy user={user} />;
       case 'approvals':
         return <Approvals user={user} />;
       case 'my-registrations':
         return <MyRegistrations />;
-      case 'info':
-        return <Info />;
+      case 'admin':
+        return <Admin />;
     }
   };
 
   return (
-    <div dir='rtl' className='min-h-screen bg-gray-50'>
-      <Sidebar currentPage={page} onNavigate={setPage} user={user} onLogout={handleLogout} />
-      <main className='mr-64 min-h-screen p-8'>{renderPage()}</main>
-    </div>
+    <ToastProvider>
+      <div className='min-h-screen bg-slate-100'>
+        <Sidebar
+          currentPage={page}
+          onNavigate={(p) => goToPage(p)}
+          user={user}
+          onLogout={handleLogout}
+        />
+        <main className='mr-72 min-h-screen p-4 sm:p-6 lg:p-8'>
+          <div className='mx-auto max-w-[1400px] rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:p-8'>
+            {renderPage()}
+          </div>
+        </main>
+      </div>
+    </ToastProvider>
   );
 };

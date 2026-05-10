@@ -11,8 +11,8 @@ export type AuthUser = {
   branch?: { id: number; name: string } | null;
 };
 
-const AUTH_KEY = 'cursit_user';
-const AUTH_VERSION_KEY = 'cursit_auth_v';
+const AUTH_KEY = 'bisli_user';
+const AUTH_VERSION_KEY = 'bisli_auth_v';
 const CURRENT_AUTH_VERSION = '2';
 
 export const saveUser = (user: AuthUser) => {

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
 
 import { appendEvent } from '../lib/append-event.js';
+import { logEvent } from '../lib/eventLog.js';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
@@ -44,6 +45,10 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
           flowId,
         });
         return created;
+      });
+      await logEvent(request.userId!, 'SUBMIT', 'CANDIDACY', candidacy.id, {
+        candidateId,
+        courseInstanceId,
       });
       return reply.status(201).send(candidacy);
     },
@@ -124,7 +129,7 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     async (request) => {
       const id = Number(request.params.id);
       const flowId = randomUUID();
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         const updated = await tx.commandCandidacy.update({
           where: { id },
           data: {
@@ -146,6 +151,8 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
         });
         return updated;
       });
+      await logEvent(request.userId!, 'APPROVE', 'CANDIDACY', result.id);
+      return result;
     },
   );
 
@@ -155,7 +162,7 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
     async (request) => {
       const id = Number(request.params.id);
       const flowId = randomUUID();
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         const updated = await tx.commandCandidacy.update({
           where: { id },
           data: {
@@ -177,6 +184,8 @@ export const candidacyRoutes = async (fastify: FastifyInstance) => {
         });
         return updated;
       });
+      await logEvent(request.userId!, 'REJECT', 'CANDIDACY', result.id);
+      return result;
     },
   );
 };

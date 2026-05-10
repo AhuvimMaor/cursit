@@ -1,0 +1,18 @@
+project: Bisli
+level: 2
+last_updated: 2026-05-06
+
+phases:
+  analysis:
+    product-brief: not-started
+    research: not-started
+  planning:
+    prd: not-started
+    tech-spec: not-started
+    ux-design: not-started
+  solutioning:
+    architecture: not-started
+    epics-stories: not-started
+  implementation:
+    sprint-planning: not-started
+    current-sprint: null

@@ -1,14 +1,17 @@
 {
-  "name": "@cursit/frontend",
+  "name": "@bisli/frontend",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --port 3000",
+    "dev:mock": "VITE_USE_MOCK=true vite --port 3000",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "lint-staged": {
     "*.{ts,tsx,js,json,css,md,html}": "prettier --write",
@@ -20,6 +23,9 @@
     "react-dom": "^19.2.5"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.5.2",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.2.4",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
@@ -33,6 +39,8 @@
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.1",
-    "vite": "^8.0.10"
+    "vite": "^8.0.10",
+    "vitest": "^3.2.4",
+    "jsdom": "^26.1.0"
   }
 }

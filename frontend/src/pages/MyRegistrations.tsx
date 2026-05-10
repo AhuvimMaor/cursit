@@ -1,11 +1,17 @@
-import { CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { useCallback } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ScreenGuide } from '../components/ScreenGuide';
 import { useApi } from '../hooks/useApi';
 import { api } from '../lib/api';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  PENDING_TL: {
+    label: 'ממתין לאישור ראש צוות',
+    color: 'bg-orange-100 text-orange-700',
+    icon: <Clock size={14} />,
+  },
   PENDING_COORD: {
     label: 'ממתין לאישור רכז',
     color: 'bg-yellow-100 text-yellow-700',
@@ -33,31 +39,41 @@ export const MyRegistrations = () => {
 
   return (
     <div className='space-y-6'>
-      <div>
-        <h1 className='text-2xl font-bold text-foreground'>הרישומים שלי</h1>
-        <p className='mt-1 text-sm text-muted-foreground'>מעקב סטטוס רישומים לקורסים</p>
-      </div>
+      <ScreenGuide
+        eyebrow='אזור אישי'
+        title='הרישומים שלי'
+        subtitle='בקשות רישום שלך לקורסים - כרטיס לכל בקשה; הסטטוס בצבע.'
+        tags={['רישום לקורס', 'ממתין', 'אושר']}
+      />
 
       {registrations.length === 0 ? (
-        <div className='rounded-xl border border-border bg-white p-8 text-center shadow-sm'>
-          <p className='text-sm text-muted-foreground'>לא נרשמת לקורסים עדיין</p>
-          <p className='mt-1 text-xs text-muted-foreground'>עבור לקטלוג הקורסים כדי להירשם</p>
+        <div className='flex flex-col items-center justify-center rounded-xl border border-border bg-white p-14 text-center shadow-sm gap-4'>
+          <BookOpen size={52} className='text-muted-foreground/30' />
+          <div>
+            <p className='text-sm font-medium text-muted-foreground'>לא נרשמת לקורסים עדיין</p>
+            <p className='mt-1 text-xs text-muted-foreground/70'>
+              עבור לקטלוג הקורסים כדי להירשם לקורס
+            </p>
+          </div>
         </div>
       ) : (
-        <div className='space-y-4'>
+        <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
           {registrations.map((r) => {
             const status = STATUS_CONFIG[r.status] ?? STATUS_CONFIG.PENDING_COORD;
             return (
-              <div key={r.id} className='rounded-xl border border-border bg-white p-6 shadow-sm'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <h3 className='text-sm font-semibold text-foreground'>
+              <div
+                key={r.id}
+                className='flex flex-col rounded-xl border border-border bg-white p-5 shadow-sm'
+              >
+                <div className='flex flex-wrap items-start justify-between gap-2'>
+                  <div className='min-w-0'>
+                    <h3 className='text-sm font-bold text-foreground leading-snug'>
                       {r.courseInstance?.course?.name}
                     </h3>
                     <p className='mt-0.5 text-xs text-muted-foreground'>{r.courseInstance?.name}</p>
                   </div>
                   <span
-                    className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${status.color}`}
+                    className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${status.color}`}
                   >
                     {status.icon}
                     {status.label}
@@ -65,7 +81,7 @@ export const MyRegistrations = () => {
                 </div>
 
                 {/* Progress indicator */}
-                <div className='mt-4 flex items-center gap-2'>
+                <div className='mt-4 flex flex-wrap items-center gap-2'>
                   <div className='flex items-center gap-1'>
                     <div className='h-2 w-2 rounded-full bg-emerald-500' />
                     <span className='text-xs text-muted-foreground'>הגשה</span>
@@ -73,7 +89,14 @@ export const MyRegistrations = () => {
                   <div className='h-px flex-1 bg-border' />
                   <div className='flex items-center gap-1'>
                     <div
-                      className={`h-2 w-2 rounded-full ${r.status === 'PENDING_COORD' ? 'bg-yellow-400' : 'bg-emerald-500'}`}
+                      className={`h-2 w-2 rounded-full ${r.status === 'PENDING_TL' ? 'bg-orange-400' : 'bg-emerald-500'}`}
+                    />
+                    <span className='text-xs text-muted-foreground'>ראש צוות</span>
+                  </div>
+                  <div className='h-px flex-1 bg-border' />
+                  <div className='flex items-center gap-1'>
+                    <div
+                      className={`h-2 w-2 rounded-full ${r.status === 'PENDING_TL' ? 'bg-gray-300' : r.status === 'PENDING_COORD' ? 'bg-yellow-400' : 'bg-emerald-500'}`}
                     />
                     <span className='text-xs text-muted-foreground'>רכז</span>
                   </div>

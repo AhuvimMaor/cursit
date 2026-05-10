@@ -1,8 +1,11 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('BIS_CDR', 'BRANCH_COORD', 'TEAM_LEADER', 'TRAINEE');
 
 -- CreateEnum
-CREATE TYPE "CourseType" AS ENUM ('FOUNDATION', 'ADVANCED');
+CREATE TYPE "CourseType" AS ENUM ('FOUNDATION', 'ADVANCED', 'LEADERSHIP');
 
 -- CreateEnum
 CREATE TYPE "CourseInstanceStatus" AS ENUM ('DRAFT', 'OPEN', 'IN_PROGRESS', 'COMPLETED');
@@ -14,7 +17,7 @@ CREATE TYPE "PhaseType" AS ENUM ('CANDIDACY_SUBMISSION', 'TRYOUTS', 'COMMANDER_C
 CREATE TYPE "CandidacyStatus" AS ENUM ('PENDING', 'COORD_REVIEWED', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "RegistrationStatus" AS ENUM ('PENDING_COORD', 'PENDING_BIS', 'APPROVED', 'REJECTED');
+CREATE TYPE "RegistrationStatus" AS ENUM ('PENDING_TL', 'PENDING_COORD', 'PENDING_BIS', 'APPROVED', 'REJECTED');
 
 -- CreateTable
 CREATE TABLE "Branch" (
@@ -121,8 +124,11 @@ CREATE TABLE "CourseRegistration" (
     "id" SERIAL NOT NULL,
     "courseInstanceId" INTEGER NOT NULL,
     "userId" INTEGER NOT NULL,
-    "status" "RegistrationStatus" NOT NULL DEFAULT 'PENDING_COORD',
+    "status" "RegistrationStatus" NOT NULL DEFAULT 'PENDING_TL',
     "formData" JSONB,
+    "tlApprovedById" INTEGER,
+    "tlApprovedAt" TIMESTAMP(3),
+    "tlNotes" TEXT,
     "coordApprovedById" INTEGER,
     "coordApprovedAt" TIMESTAMP(3),
     "coordNotes" TEXT,
@@ -164,6 +170,19 @@ CREATE TABLE "InfoPage" (
     CONSTRAINT "InfoPage_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "EventLog" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "action" VARCHAR(64) NOT NULL,
+    "entityType" VARCHAR(64) NOT NULL,
+    "entityId" INTEGER,
+    "details" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "EventLog_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_uniqueId_key" ON "User"("uniqueId");
 
@@ -175,6 +194,15 @@ CREATE UNIQUE INDEX "CourseRegistration_courseInstanceId_userId_key" ON "CourseR
 
 -- CreateIndex
 CREATE UNIQUE INDEX "InfoPage_slug_key" ON "InfoPage"("slug");
+
+-- CreateIndex
+CREATE INDEX "EventLog_userId_idx" ON "EventLog"("userId");
+
+-- CreateIndex
+CREATE INDEX "EventLog_entityType_entityId_idx" ON "EventLog"("entityType", "entityId");
+
+-- CreateIndex
+CREATE INDEX "EventLog_createdAt_idx" ON "EventLog"("createdAt");
 
 -- AddForeignKey
 ALTER TABLE "Team" ADD CONSTRAINT "Team_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -210,6 +238,9 @@ ALTER TABLE "CourseRegistration" ADD CONSTRAINT "CourseRegistration_courseInstan
 ALTER TABLE "CourseRegistration" ADD CONSTRAINT "CourseRegistration_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "CourseRegistration" ADD CONSTRAINT "CourseRegistration_tlApprovedById_fkey" FOREIGN KEY ("tlApprovedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "CourseRegistration" ADD CONSTRAINT "CourseRegistration_coordApprovedById_fkey" FOREIGN KEY ("coordApprovedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -217,3 +248,7 @@ ALTER TABLE "CourseRegistration" ADD CONSTRAINT "CourseRegistration_bisApprovedB
 
 -- AddForeignKey
 ALTER TABLE "FormTemplate" ADD CONSTRAINT "FormTemplate_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EventLog" ADD CONSTRAINT "EventLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
