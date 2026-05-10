@@ -1,10 +1,22 @@
-import type { Prisma } from '@prisma/client';
+import type { Course } from '@prisma/client';
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
 
 import { appendEvent } from '../lib/append-event.js';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+
+function courseAuditSnapshot(course: Course) {
+  return {
+    name: course.name,
+    description: course.description,
+    type: course.type,
+    requirements: course.requirements,
+    gmushHours: course.gmushHours,
+    location: course.location,
+    isPublished: course.isPublished,
+  };
+}
 
 export const courseRoutes = async (fastify: FastifyInstance) => {
   fastify.get('/', async (request) => {
@@ -73,6 +85,7 @@ export const courseRoutes = async (fastify: FastifyInstance) => {
       const flowId = randomUUID();
       const patch = request.body as Parameters<typeof prisma.course.update>[0]['data'];
       return prisma.$transaction(async (tx) => {
+        const before = await tx.course.findUniqueOrThrow({ where: { id } });
         const updated = await tx.course.update({
           where: { id },
           data: patch,
@@ -82,7 +95,10 @@ export const courseRoutes = async (fastify: FastifyInstance) => {
           aggregateType: 'COURSE',
           aggregateId: id,
           actorUserId: request.userId!,
-          payload: { patch: patch as unknown as Prisma.InputJsonValue },
+          payload: {
+            before: courseAuditSnapshot(before),
+            after: courseAuditSnapshot(updated),
+          },
           flowId,
         });
         return updated;

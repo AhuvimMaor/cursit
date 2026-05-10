@@ -186,6 +186,15 @@ Append-only audit log. **`aggregateType` + `aggregateId`** point at a row in ano
 **Unique:** `@@unique([aggregateType, aggregateId, version])`  
 **Indexes:** `(aggregateType, aggregateId, occurredAt)`, `(eventType, occurredAt)`, `(actorUserId, occurredAt)`, `(flowId)`
 
+### Auditing: `Event` vs `EventLog`
+
+| Table          | Role                                                                                                                                                                                                                                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`Event`**    | Authoritative append-only stream: rows are written **in the same transaction** as domain changes (`appendEvent`). Prefer this for audit trails, investigations, and tooling that needs reliable causality. Version collisions under concurrency are retried inside PostgreSQL savepoints. |
+| **`EventLog`** | Older convenience log (`logEvent`): written **outside** those transactions; failures are swallowed. Treat as supplementary / legacy unless you explicitly rely on its shape.                                                                                                              |
+
+`causationEventId` on **`Event`** is optional metadata for linking one event to a parent event (e.g. workflows); routes may leave it null until you wire chained flows.
+
 ---
 
 ## Entity-relationship diagram

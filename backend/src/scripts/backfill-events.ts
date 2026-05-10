@@ -41,7 +41,12 @@ function registrationPayload(r: CourseRegistration) {
   };
 }
 
-/** Inserts one snapshot event per candidacy/registration that has no events yet (e.g. existing rows before logging shipped). */
+/**
+ * Inserts one snapshot event per candidacy/registration that has no events yet (e.g. rows created before event logging existed).
+ *
+ * Run **one instance at a time**: overlapping runs can race on `(aggregateType, aggregateId)` version allocation (same as concurrent API writes).
+ * Large databases may take a while — script uses per-row transactions.
+ */
 export async function backfillEventsIfMissing(db: PrismaClient) {
   const candidacies = await db.commandCandidacy.findMany();
   for (const c of candidacies) {
