@@ -2308,6 +2308,19 @@ export type Team = {
 
 export type User = AuthUser & { isActive?: boolean };
 
+export type KartoffelEntity = {
+  id: string;
+  identityCard: string;
+  personalNumber: string;
+  displayName: string;
+  fullName: string;
+  rank: string;
+  akaUnit: string;
+  hierarchy: string;
+  serviceType: string;
+  phone?: string;
+};
+
 export type Course = {
   id: number;
   name: string;
@@ -2366,7 +2379,7 @@ export type CourseRegistration = {
   id: number;
   courseInstanceId: number;
   userId: number;
-  status: 'PENDING_COORD' | 'PENDING_BIS' | 'PENDING_UNIT_TRAINING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING_TL' | 'PENDING_COORD' | 'PENDING_BIS' | 'APPROVED' | 'REJECTED';
   formData: Record<string, unknown> | null;
   coordPriority: number | null;
   coordNotes: string | null;
@@ -2422,6 +2435,11 @@ export const api = {
   getMe: () => fetchJson<AuthUser>('/auth/me'),
   getUsers: () => fetchJson<User[]>('/auth/users'),
   getTeamMembers: (teamId: number) => fetchJson<User[]>(`/auth/team/${teamId}/members`),
+
+  // Kartoffel
+  getKartoffelStatus: () => fetchJson<{ enabled: boolean; cachedCount: number }>('/kartoffel/status'),
+  getKartoffelMembers: () => fetchJson<KartoffelEntity[]>('/kartoffel/members'),
+  searchKartoffel: (q: string) => fetchJson<KartoffelEntity[]>(`/kartoffel/search?q=${encodeURIComponent(q)}`),
   createUser: (data: {
     uniqueId: string;
     name: string;

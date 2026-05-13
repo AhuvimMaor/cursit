@@ -1,4 +1,4 @@
-import { Shield, LogIn } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -54,9 +54,12 @@ const FALLBACK_USERS: AuthUser[] = [
 
 export const Login = ({ onLogin }: LoginProps) => {
   const fetchUsers = useCallback(() => api.getUsers(), []);
+  const fetchKartoffel = useCallback(() => api.getKartoffelMembers().catch(() => []), []);
   const { data: users, loading } = useApi(fetchUsers);
+  const { data: kartoffelMembers } = useApi(fetchKartoffel);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loggingIn, setLoggingIn] = useState(false);
+  const [kartoffelSearch, setKartoffelSearch] = useState('');
 
   const handleLogin = async (user: AuthUser) => {
     setSelectedId(user.id);
@@ -69,10 +72,24 @@ export const Login = ({ onLogin }: LoginProps) => {
     }
   };
 
+  const handleKartoffelLogin = async (personalNumber: string, _name: string) => {
+    setLoggingIn(true);
+    try {
+      const fullUser = await api.login(personalNumber);
+      setTimeout(() => onLogin(fullUser), 400);
+    } catch {
+      setLoggingIn(false);
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
 
   const roleGroups = [Role.BIS_CDR, Role.BRANCH_COORD, Role.TEAM_LEADER, Role.TRAINEE];
   const usersToShow = users && users.length > 0 ? users : FALLBACK_USERS;
+
+  const filteredKartoffel = kartoffelMembers?.filter(
+    (m) => kartoffelSearch.length >= 2 && m.displayName.includes(kartoffelSearch),
+  ) ?? [];
 
   return (
     <div
@@ -185,19 +202,47 @@ export const Login = ({ onLogin }: LoginProps) => {
             })}
           </div>
 
-          <div className='mt-6 flex items-center gap-3'>
-            <div className='h-px flex-1 bg-white/8' />
-            <span className='text-xs text-slate-600'>או</span>
-            <div className='h-px flex-1 bg-white/8' />
-          </div>
+          {/* Kartoffel search */}
+          {kartoffelMembers && kartoffelMembers.length > 0 && (
+            <>
+              <div className='mt-6 flex items-center gap-3'>
+                <div className='h-px flex-1 bg-white/8' />
+                <span className='text-xs text-slate-600'>חיפוש מ-Kartoffel</span>
+                <div className='h-px flex-1 bg-white/8' />
+              </div>
 
-          <button
-            disabled={loggingIn}
-            className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-900/40 transition-colors hover:bg-sky-500 disabled:opacity-50'
-          >
-            <LogIn size={15} />
-            כניסה עם OAuth
-          </button>
+              <div className='mt-3'>
+                <input
+                  type='search'
+                  value={kartoffelSearch}
+                  onChange={(e) => setKartoffelSearch(e.target.value)}
+                  placeholder='חפש לפי שם...'
+                  className='w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-sky-500/40'
+                />
+                {filteredKartoffel.length > 0 && (
+                  <div className='mt-2 max-h-40 space-y-1 overflow-y-auto'>
+                    {filteredKartoffel.slice(0, 8).map((m) => (
+                      <button
+                        key={m.personalNumber}
+                        type='button'
+                        onClick={() => handleKartoffelLogin(m.personalNumber, m.displayName)}
+                        disabled={loggingIn}
+                        className='flex w-full items-center gap-3 rounded-lg border border-white/8 bg-white/4 px-3 py-2 text-right transition-all hover:border-white/15 hover:bg-white/8'
+                      >
+                        <div className='flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-300'>
+                          {m.displayName.charAt(0)}
+                        </div>
+                        <div className='min-w-0 flex-1'>
+                          <p className='truncate text-xs font-medium text-white'>{m.displayName}</p>
+                          <p className='truncate text-[10px] text-slate-500'>{m.rank} · {m.hierarchy}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <p className='mt-6 text-center text-[11px] text-slate-700'>

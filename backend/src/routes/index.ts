@@ -9,6 +9,7 @@ import { fileRoutes } from './files.js';
 import { ganttRoutes } from './gantt.js';
 import { healthRoutes } from './health.js';
 import { infoRoutes } from './info.js';
+import { kartoffelRoutes } from './kartoffel.js';
 import { registrationRoutes } from './registrations.js';
 
 export const registerRoutes = (fastify: FastifyInstance) => {
@@ -22,4 +23,5 @@ export const registerRoutes = (fastify: FastifyInstance) => {
   fastify.register(fileRoutes, { prefix: '/api/files' });
   fastify.register(infoRoutes, { prefix: '/api/info' });
   fastify.register(eventRoutes, { prefix: '/api/events' });
+  fastify.register(kartoffelRoutes, { prefix: '/api/kartoffel' });
 };
