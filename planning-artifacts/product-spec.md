@@ -992,6 +992,9 @@ erDiagram
 ### מועמדות לפיקוד (ראש צוות)
 ![מועמדות - ראש צוות](screenshots/candidacy.png)
 
+### מודאל הגשת מועמדות
+![טופס הגשת מועמדות](screenshots/candidacy-form.png)
+
 ### מועמדות לפיקוד (מפקד בי"ס)
 ![מועמדות - מפקד](screenshots/candidacy-admin.png)
 
