@@ -241,6 +241,7 @@ export const Candidacy = ({ user }: CandidacyProps) => {
       >
         <CandidacyForm
           teamId={user.teamId ?? undefined}
+          userUniqueId={user.uniqueId}
           isAdmin={user.role === Role.BIS_CDR}
           onSubmitted={() => {
             setShowFormModal(false);
@@ -293,20 +294,25 @@ export const Candidacy = ({ user }: CandidacyProps) => {
 
 type CandidacyFormProps = {
   teamId?: number;
+  userUniqueId?: string;
   isAdmin?: boolean;
   onSubmitted: () => void;
   onCancel: () => void;
 };
 
-function CandidacyForm({ teamId, isAdmin, onSubmitted, onCancel }: CandidacyFormProps) {
+function CandidacyForm({ teamId, userUniqueId, isAdmin, onSubmitted, onCancel }: CandidacyFormProps) {
   const membersFetcher = useCallback(
     () =>
       isAdmin
         ? api.getUsers().then((users) => users.filter((u) => u.role === Role.TRAINEE))
-        : teamId
-          ? api.getTeamMembers(teamId)
-          : Promise.resolve([]),
-    [teamId, isAdmin],
+        : userUniqueId
+          ? api.getMyKartoffelTeam(userUniqueId).then((entities) =>
+              entities.map((e) => ({ id: 0, uniqueId: e.personalNumber, name: e.fullName, role: Role.TRAINEE } as User)),
+            ).catch(() => teamId ? api.getTeamMembers(teamId) : Promise.resolve([]))
+          : teamId
+            ? api.getTeamMembers(teamId)
+            : Promise.resolve([]),
+    [teamId, userUniqueId, isAdmin],
   );
   const coursesFetcher = useCallback(() => api.getCourses(), []);
   const { data: members, loading: l1 } = useApi(membersFetcher);

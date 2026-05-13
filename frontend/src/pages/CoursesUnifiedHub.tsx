@@ -680,9 +680,9 @@ function CandidacyQuickForm({ instanceId, user, onClose }: CandidacyQuickFormPro
     () =>
       user.role === Role.BIS_CDR
         ? api.getUsers().then((users) => users.filter((u) => u.role === Role.TRAINEE))
-        : user.teamId
-          ? api.getTeamMembers(user.teamId)
-          : Promise.resolve([]),
+        : api.getMyKartoffelTeam(user.uniqueId).then((entities) =>
+            entities.map((e) => ({ id: 0, uniqueId: e.personalNumber, name: e.fullName, role: Role.TRAINEE } as User)),
+          ).catch(() => user.teamId ? api.getTeamMembers(user.teamId) : Promise.resolve([])),
     [user],
   );
   const { data: members, loading } = useApi(membersFetcher);

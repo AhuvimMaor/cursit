@@ -2440,6 +2440,7 @@ export const api = {
   getKartoffelStatus: () => fetchJson<{ enabled: boolean; cachedCount: number }>('/kartoffel/status'),
   getKartoffelMembers: () => fetchJson<KartoffelEntity[]>('/kartoffel/members'),
   searchKartoffel: (q: string) => fetchJson<KartoffelEntity[]>(`/kartoffel/search?q=${encodeURIComponent(q)}`),
+  getMyKartoffelTeam: (personalNumber: string) => fetchJson<KartoffelEntity[]>(`/kartoffel/my-team/${personalNumber}`),
   createUser: (data: {
     uniqueId: string;
     name: string;
