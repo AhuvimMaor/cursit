@@ -1,10 +1,11 @@
-import { Shield } from 'lucide-react';
+import { LogIn, Shield } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useApi } from '../hooks/useApi';
 import { api } from '../lib/api';
 import type { AuthUser } from '../lib/auth';
+import { IS_DEV } from '../lib/auth';
 import { HEBREW_ROLES, Role } from '../lib/roles';
 
 type LoginProps = {
@@ -133,6 +134,21 @@ export const Login = ({ onLogin }: LoginProps) => {
 
         {/* Login card */}
         <div className='rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-sm'>
+          {!IS_DEV && (
+            <div className='space-y-4'>
+              <p className='text-center text-sm text-slate-300'>כניסה למערכת באמצעות חשבון ארגוני</p>
+              <button
+                onClick={() => { window.location.href = '/api/auth'; }}
+                className='flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-sky-900/40 transition-colors hover:bg-sky-500'
+              >
+                <LogIn size={16} />
+                כניסה למערכת
+              </button>
+            </div>
+          )}
+
+          {IS_DEV && (
+          <>
           {/* Dev environment notice */}
           <div className='mb-4 flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/8 px-3 py-2'>
             <span className='h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400' />
@@ -242,6 +258,8 @@ export const Login = ({ onLogin }: LoginProps) => {
                 )}
               </div>
             </>
+          )}
+          </>
           )}
         </div>
 
