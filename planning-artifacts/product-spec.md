@@ -38,7 +38,7 @@ erDiagram
 
     User {
         Int id PK
-        String uniqueId UK
+        String uniqueId
         String name
         UserRole role
         Int teamId FK
@@ -50,7 +50,7 @@ erDiagram
 
     SoldierProfile {
         Int id PK
-        Int userId UK FK
+        Int userId FK
         ServiceType serviceType
         Int remainingServiceMonths
         Int gamushHoursCompleted
@@ -61,7 +61,7 @@ erDiagram
 
     Budget {
         Int id PK
-        Int year UK
+        Int year
         Decimal totalAmount
         Decimal usedAmount
         String notes
@@ -171,7 +171,7 @@ erDiagram
 
     InfoPage {
         Int id PK
-        String slug UK
+        String slug
         String title
         String content
         Int sortOrder
