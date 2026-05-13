@@ -130,6 +130,19 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     });
   });
 
+  // TL sees team's pending registrations
+  fastify.get(
+    '/team',
+    { preHandler: [authenticate, requireRole('TEAM_LEADER')] },
+    async (request) => {
+      return prisma.courseRegistration.findMany({
+        where: { user: { teamId: request.userTeamId }, status: 'PENDING_TL' },
+        include: { user: true, courseInstance: { include: { course: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+  );
+
   fastify.get(
     '/branch',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
@@ -149,6 +162,37 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
     },
   );
 
+  // Step 1: TL approves → goes to coord
+  fastify.patch<{ Params: { id: string }; Body: { tlNotes?: string } }>(
+    '/:id/approve-tl',
+    { preHandler: [authenticate, requireRole('TEAM_LEADER')] },
+    async (request) => {
+      const id = Number(request.params.id);
+      const flowId = randomUUID();
+      return prisma.$transaction(async (tx) => {
+        const updated = await tx.courseRegistration.update({
+          where: { id },
+          data: {
+            status: 'PENDING_COORD',
+            tlApprovedById: request.userId,
+            tlApprovedAt: new Date(),
+            tlNotes: request.body.tlNotes,
+          },
+        });
+        await appendEvent(tx, {
+          eventType: 'registration.tl_approved',
+          aggregateType: 'REGISTRATION',
+          aggregateId: id,
+          actorUserId: request.userId!,
+          payload: { status: 'PENDING_COORD' },
+          flowId,
+        });
+        return updated;
+      });
+    },
+  );
+
+  // Step 2: Coord approves → goes to BIS
   fastify.patch<{ Params: { id: string }; Body: { coordNotes?: string; coordPriority?: number } }>(
     '/:id/prioritize',
     { preHandler: [authenticate, requireRole('BRANCH_COORD')] },
@@ -159,7 +203,7 @@ export const registrationRoutes = async (fastify: FastifyInstance) => {
         const updated = await tx.courseRegistration.update({
           where: { id },
           data: {
-            status: 'APPROVED',
+            status: 'PENDING_BIS',
             coordApprovedById: request.userId,
             coordApprovedAt: new Date(),
             coordNotes: request.body.coordNotes,

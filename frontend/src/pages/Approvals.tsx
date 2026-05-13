@@ -8,17 +8,28 @@ import { toast } from '../components/Toast';
 import { useApi } from '../hooks/useApi';
 import type { CourseRegistration } from '../lib/api';
 import { api } from '../lib/api';
+import type { AuthUser } from '../lib/auth';
+import { Role } from '../lib/roles';
 
+type ApprovalsProps = { user: AuthUser };
 type RegAction = { id: number; type: 'approve' | 'reject' };
 
-export const Approvals = () => {
-  const regFetcher = useCallback(() => api.getBranchRegistrations(), []);
+export const Approvals = ({ user }: ApprovalsProps) => {
+  const regFetcher = useCallback(() => {
+    if (user.role === Role.TEAM_LEADER) return api.getTeamRegistrations();
+    if (user.role === Role.BIS_CDR) return api.getAllRegistrations();
+    return api.getBranchRegistrations();
+  }, [user.role]);
+
   const { data: allRegs, loading, refetch } = useApi(regFetcher);
 
   const pendingRegs = useMemo(() => {
     if (!allRegs) return [];
-    return allRegs.filter((r) => r.status === 'PENDING_COORD');
-  }, [allRegs]);
+    if (user.role === Role.TEAM_LEADER) return allRegs.filter((r) => r.status === 'PENDING_TL');
+    if (user.role === Role.BRANCH_COORD) return allRegs.filter((r) => r.status === 'PENDING_COORD');
+    if (user.role === Role.BIS_CDR) return allRegs.filter((r) => r.status === 'PENDING_BIS');
+    return [];
+  }, [allRegs, user.role]);
 
   const [action, setAction] = useState<RegAction | null>(null);
   const [notes, setNotes] = useState('');
@@ -29,14 +40,20 @@ export const Approvals = () => {
     setSubmitting(true);
     try {
       if (action.type === 'approve') {
-        await api.prioritizeRegistration(action.id, {
-          coordNotes: notes || undefined,
-        });
-        toast.success('הרישום אושר');
+        if (user.role === Role.TEAM_LEADER) {
+          await api.approveRegistrationTl(action.id, notes || undefined);
+          toast.success('אושר ונשלח לקה"ד ענפי');
+        } else if (user.role === Role.BRANCH_COORD) {
+          await api.prioritizeRegistration(action.id, { coordNotes: notes || undefined });
+          toast.success('אושר ונשלח למפקד בי"ס');
+        } else {
+          await api.approveRegistrationFinal(action.id, notes || undefined);
+          toast.success('אושר סופית');
+        }
       } else {
         if (!notes) return;
         await api.rejectRegistration(action.id, notes);
-        toast.error('הרישום נדחה');
+        toast.error('נדחה');
       }
       setAction(null);
       setNotes('');
@@ -48,21 +65,29 @@ export const Approvals = () => {
 
   if (loading) return <LoadingSpinner />;
 
-  const modalTitle = action?.type === 'reject' ? 'דחיית בקשה' : 'אישור רישום';
+  const title =
+    user.role === Role.TEAM_LEADER ? 'אישור רישום - הצוות שלך'
+    : user.role === Role.BRANCH_COORD ? 'אישור רישום - הענף'
+    : 'אישור רישום סופי';
+
+  const subtitle =
+    user.role === Role.TEAM_LEADER ? 'בקשות משתתפי הצוות שממתינות לאישורך'
+    : user.role === Role.BRANCH_COORD ? 'בקשות שאושרו ע"י ראש צוות - ממתינות לאישורך'
+    : 'בקשות שאושרו ע"י קה"ד ענפי - אישור סופי';
+
+  const modalTitle = action?.type === 'reject' ? 'דחיית בקשה' : 'אישור';
 
   return (
     <div className='space-y-5'>
       <div>
-        <h1 className='text-xl font-bold text-foreground'>רישומים ממתינים לאישור</h1>
-        <p className='mt-1 text-sm text-muted-foreground'>
-          בקשות רישום לקורסים מתקדמים שהוגשו ע"י חיילים
-        </p>
+        <h1 className='text-xl font-bold text-foreground'>{title}</h1>
+        <p className='mt-1 text-sm text-muted-foreground'>{subtitle}</p>
       </div>
 
       {pendingRegs.length === 0 ? (
         <div className='flex flex-col items-center justify-center rounded-xl border border-border bg-white p-12 gap-2'>
           <CheckCircle2 size={40} className='text-emerald-200' />
-          <p className='text-sm font-medium text-muted-foreground'>אין רישומים ממתינים לאישור</p>
+          <p className='text-sm font-medium text-muted-foreground'>אין בקשות ממתינות לאישורך</p>
         </div>
       ) : (
         <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3'>

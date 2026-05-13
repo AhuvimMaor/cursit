@@ -3,9 +3,9 @@ import { Role } from './roles';
 export type Page = 'courses-hub' | 'candidacy' | 'approvals' | 'my-registrations' | 'admin';
 
 const ROLE_PAGES: Record<Role, Page[]> = {
-  [Role.BIS_CDR]: ['courses-hub', 'candidacy', 'admin'],
+  [Role.BIS_CDR]: ['courses-hub', 'candidacy', 'approvals', 'admin'],
   [Role.BRANCH_COORD]: ['courses-hub', 'approvals'],
-  [Role.TEAM_LEADER]: ['courses-hub', 'candidacy'],
+  [Role.TEAM_LEADER]: ['courses-hub', 'candidacy', 'approvals'],
   [Role.TRAINEE]: ['my-registrations', 'courses-hub'],
   [Role.UNIT_TRAINING]: ['approvals'],
 };

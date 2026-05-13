@@ -50,9 +50,9 @@ enum CandidacyStatus {
 }
 
 enum RegistrationStatus {
-  PENDING_COORD         // Step 1: waiting for branch coord (קה"ד ענפי)
-  PENDING_BIS           // Step 2: waiting for school commander (מפקד בי"ס)
-  PENDING_UNIT_TRAINING // Step 3: waiting for unit training dept (מדור הדרכה יחידתי)
+  PENDING_TL            // Step 1: waiting for team leader (ראש צוות)
+  PENDING_COORD         // Step 2: waiting for branch coord (קה"ד ענפי)
+  PENDING_BIS           // Step 3: waiting for school commander (מפקד בי"ס)
   APPROVED
   REJECTED
 }
@@ -247,7 +247,7 @@ model CourseRegistration {
   courseInstance   CourseInstance     @relation(fields: [courseInstanceId], references: [id])
   userId           Int
   user             User               @relation("RegistrantUser", fields: [userId], references: [id])
-  status           RegistrationStatus @default(PENDING_COORD)
+  status           RegistrationStatus @default(PENDING_TL)
   formData         Json?
 
   // Step 1: Team Leader

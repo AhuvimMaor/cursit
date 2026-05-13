@@ -58,6 +58,12 @@ export const App = () => {
 
 function AppShell({ user, page, goToPage, onLogout }: { user: AuthUser; page: Page; goToPage: (p: Page) => void; onLogout: () => void }) {
   const badgeFetcher = useCallback(() => {
+    if (user.role === Role.TEAM_LEADER) {
+      return api.getTeamRegistrations().then((regs) => ({
+        approvals: regs.filter((r) => r.status === 'PENDING_TL').length,
+        candidacy: 0,
+      }));
+    }
     if (user.role === Role.BRANCH_COORD) {
       return api.getBranchRegistrations().then((regs) => ({
         approvals: regs.filter((r) => r.status === 'PENDING_COORD').length,
@@ -65,8 +71,8 @@ function AppShell({ user, page, goToPage, onLogout }: { user: AuthUser; page: Pa
       }));
     }
     if (user.role === Role.BIS_CDR) {
-      return api.getAllCandidacies().then((cands) => ({
-        approvals: 0,
+      return Promise.all([api.getAllRegistrations(), api.getAllCandidacies()]).then(([regs, cands]) => ({
+        approvals: regs.filter((r) => r.status === 'PENDING_BIS').length,
         candidacy: cands.filter((c) => c.status === 'PENDING' || c.status === 'COORD_REVIEWED').length,
       }));
     }
@@ -90,7 +96,7 @@ function AppShell({ user, page, goToPage, onLogout }: { user: AuthUser; page: Pa
       case 'candidacy':
         return <Candidacy user={user} />;
       case 'approvals':
-        return <Approvals />;
+        return <Approvals user={user} />;
       case 'my-registrations':
         return <MyRegistrations />;
       case 'admin':

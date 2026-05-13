@@ -10,8 +10,8 @@ implementation_artifacts: ./implementation-artifacts
 project_knowledge: ./docs
 
 description: |
-  Military training management system for IDF Unit 8200.
+  Training management system for educational organizations.
   Manages course catalog, registrations, approval chains,
-  candidacy for command courses, file uploads, and budget tracking.
+  candidacy for leadership courses, file uploads, and budget tracking.
   Hebrew RTL interface. Fastify + Prisma + PostgreSQL backend,
   React + Vite + Tailwind frontend.
