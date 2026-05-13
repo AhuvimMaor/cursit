@@ -3,13 +3,11 @@ import type { FastifyInstance } from 'fastify';
 import {
   getCachedMembers,
   getCacheTimestamp,
-  getEntityByIdentityCard,
-  getEntityByPersonalNumber,
-  getGroupChildren,
-  getGroupMembers,
-  getRootMembers,
+  getEntitiesByGroup,
+  getEntityByIdentifier,
+  getGroups,
   isKartoffelEnabled,
-  searchEntities,
+  loadMembers,
 } from '../lib/kartoffel.js';
 
 export const kartoffelRoutes = async (fastify: FastifyInstance) => {
@@ -19,39 +17,34 @@ export const kartoffelRoutes = async (fastify: FastifyInstance) => {
     cachedCount: getCachedMembers().length,
   }));
 
-  fastify.get<{ Querystring: { q: string } }>('/search', async (request) => {
-    const { q } = request.query;
+  fastify.get<{ Querystring: { q?: string } }>('/search', async (request) => {
+    const q = request.query.q;
     if (!q || q.length < 2) return [];
-    return searchEntities(q);
+    let cached = getCachedMembers();
+    if (cached.length === 0) cached = await loadMembers();
+    return cached.filter((e) => e.fullName?.includes(q) || e.displayName?.includes(q)).slice(0, 20);
   });
 
   fastify.get('/members', async () => {
     const cached = getCachedMembers();
     if (cached.length > 0) return cached;
-    return getRootMembers();
+    return loadMembers();
   });
 
   fastify.post('/refresh', async () => {
-    const members = await getRootMembers();
+    const members = await loadMembers();
     return { count: members.length, cachedAt: getCacheTimestamp()?.toISOString() };
   });
 
-  fastify.get<{ Params: { personalNumber: string } }>(
-    '/person/:personalNumber',
-    async (request) => {
-      return getEntityByPersonalNumber(request.params.personalNumber);
-    },
-  );
-
-  fastify.get<{ Params: { id: string } }>('/person/id/:id', async (request) => {
-    return getEntityByIdentityCard(request.params.id);
+  fastify.get<{ Params: { identifier: string } }>('/person/:identifier', async (request) => {
+    return getEntityByIdentifier(request.params.identifier);
   });
 
   fastify.get<{ Params: { groupId: string } }>('/group/:groupId/members', async (request) => {
-    return getGroupMembers(request.params.groupId);
+    return getEntitiesByGroup(request.params.groupId);
   });
 
-  fastify.get<{ Params: { groupId: string } }>('/group/:groupId/children', async (request) => {
-    return getGroupChildren(request.params.groupId);
+  fastify.get('/groups', async () => {
+    return getGroups();
   });
 };
