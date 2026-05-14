@@ -1,0 +1,177 @@
+name: Docker Build & Release
+run-name: "Build ${{ inputs.version }}"
+
+permissions:
+  contents: write
+  actions: write
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g., v1.0.0)'
+        required: true
+        type: string
+      ref:
+        description: 'Git ref to checkout (commit SHA or branch)'
+        required: false
+        type: string
+      prev_tag:
+        description: 'Previous release tag for migration diff (e.g., v0.9.0)'
+        required: false
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: szenius/set-timezone@v2.0
+        with:
+          timezoneLinux: 'Asia/Jerusalem'
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || '' }}
+          fetch-depth: 0
+
+      - name: Resolve previous tag
+        id: prev-tag
+        run: |
+          if [ -n "${{ inputs.prev_tag }}" ]; then
+            echo "prev_tag=${{ inputs.prev_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            PREV_TAG=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | grep -v "^${{ inputs.version }}$" | head -1)
+            if [ -n "$PREV_TAG" ]; then
+              echo "prev_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+            else
+              echo "prev_tag=" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Build Docker image
+        run: |
+          docker build . \
+            -t bisli:${{ inputs.version }} \
+            --build-arg BUILD_VERSION=${{ inputs.version }} \
+            --build-arg BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+      - name: Save Docker image to TAR
+        run: docker save -o bisli-${{ inputs.version }}.tar bisli:${{ inputs.version }}
+
+      - name: Zip Docker image
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: bisli-${{ inputs.version }}.tar
+          dest: bisli-${{ inputs.version }}.zip
+
+      - name: Create migration diff zip
+        id: migration-diff
+        run: |
+          PREV_TAG="${{ steps.prev-tag.outputs.prev_tag }}"
+
+          if [ -z "$PREV_TAG" ]; then
+            echo "has_diff=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED_DIRS=$(git diff --name-only "$PREV_TAG"..HEAD -- backend/prisma/migrations/ \
+            | grep '\.sql$' \
+            | xargs -I{} dirname {} \
+            | sort -u \
+            || true)
+
+          if [ -z "$CHANGED_DIRS" ]; then
+            echo "has_diff=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mkdir -p staging-migrations/migrations
+          for DIR in $CHANGED_DIRS; do
+            MIGRATION_NAME=$(basename "$DIR")
+            cp -r "$DIR" "staging-migrations/migrations/$MIGRATION_NAME"
+          done
+
+          if [ -f backend/prisma/migrations/migration_lock.toml ]; then
+            cp backend/prisma/migrations/migration_lock.toml staging-migrations/migrations/
+          fi
+
+          echo "has_diff=true" >> "$GITHUB_OUTPUT"
+
+      - name: Zip migration diff
+        if: steps.migration-diff.outputs.has_diff == 'true'
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: staging-migrations/migrations/
+          dest: migrations-${{ inputs.version }}.zip
+
+      - name: Zip full migrations
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: backend/prisma/migrations/
+          dest: migrations-full-${{ inputs.version }}.zip
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bisli-${{ inputs.version }}
+          path: bisli-${{ inputs.version }}.zip
+          retention-days: 90
+
+      - name: Upload migration diff artifact
+        if: steps.migration-diff.outputs.has_diff == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: migrations-${{ inputs.version }}
+          path: migrations-${{ inputs.version }}.zip
+          retention-days: 90
+
+      - name: Upload full migrations artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: migrations-full-${{ inputs.version }}
+          path: migrations-full-${{ inputs.version }}.zip
+          retention-days: 90
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          draft: false
+          files: |
+            bisli-${{ inputs.version }}.zip
+            migrations-${{ inputs.version }}.zip
+            migrations-full-${{ inputs.version }}.zip
+          fail_on_unmatched_files: false
+
+      - name: Cleanup old artifacts (keep latest 4)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const KEEP_COUNT = 4;
+            const { data } = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            });
+            const groups = {};
+            for (const artifact of data.artifacts) {
+              const prefix = artifact.name.replace(/-v?\d+\.\d+\.\d+$/, '');
+              if (!groups[prefix]) groups[prefix] = [];
+              groups[prefix].push(artifact);
+            }
+            for (const [prefix, artifacts] of Object.entries(groups)) {
+              artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              const toDelete = artifacts.slice(KEEP_COUNT);
+              for (const artifact of toDelete) {
+                console.log(`Deleting ${artifact.name} (id: ${artifact.id})`);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id,
+                });
+              }
+            }
