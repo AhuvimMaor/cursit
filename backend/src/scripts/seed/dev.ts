@@ -33,182 +33,89 @@ const main = async () => {
   ]);
   console.log(`Created ${teams.length} teams`);
 
-  // ── Users ──
-  const admin = await prisma.user.create({
-    data: { uniqueId: '1000000', name: 'דוד כהן', role: 'BIS_CDR' },
+  // ── Users from Kartoffel ──
+  const axios = (await import('axios')).default;
+  const https = await import('https');
+  const kartoffelUrl = process.env.KARTOFFEL_BASE_URL || 'https://kartoffel.branch-yesodot.org/api';
+  const kartoffelClient = axios.create({
+    baseURL: kartoffelUrl,
+    timeout: 15000,
+    httpsAgent: new https.Agent({ rejectUnauthorized: false }),
   });
 
-  const coords = await Promise.all([
-    prisma.user.create({
-      data: {
-        uniqueId: '2000001',
-        name: 'שרה לוי',
-        role: 'BRANCH_COORD',
-        branchId: branches[0].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '2000002',
-        name: 'יוסי אברהם',
-        role: 'BRANCH_COORD',
-        branchId: branches[1].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '2000003',
-        name: 'מיכל דוד',
-        role: 'BRANCH_COORD',
-        branchId: branches[2].id,
-      },
-    }),
-  ]);
+  let kartoffelEntities: any[] = [];
+  try {
+    for (let page = 1; page <= 3; page++) {
+      const res = await kartoffelClient.get('/entities', { params: { page, pageSize: 100 } });
+      kartoffelEntities.push(...res.data);
+      if (res.data.length < 100) break;
+    }
+    console.log(`Fetched ${kartoffelEntities.length} entities from Kartoffel`);
+  } catch (err) {
+    console.log('Kartoffel unavailable, using fallback users');
+    kartoffelEntities = [
+      { personalNumber: '1000000', fullName: 'דוד כהן', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '2000001', fullName: 'שרה לוי', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '2000002', fullName: 'יוסי אברהם', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '2000003', fullName: 'מיכל דוד', akaUnit: 'ענף תקשוב' },
+      { personalNumber: '3000001', fullName: 'נועה מזרחי', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '3000002', fullName: 'אורי גולן', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '3000003', fullName: 'תמר פרץ', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '3000004', fullName: 'דניאל רוזנברג', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '3000005', fullName: 'שירה כהן', akaUnit: 'ענף תקשוב' },
+      { personalNumber: '4000001', fullName: 'יונתן לוי', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000002', fullName: 'מאיה אברהם', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000003', fullName: 'עידו כהן', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000004', fullName: 'רונה דוד', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000005', fullName: 'אלון פרידמן', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000006', fullName: 'שקד מזרחי', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '4000007', fullName: 'ליאור גולן', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '4000008', fullName: 'נגה רוזנברג', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '4000009', fullName: 'תומר שמעוני', akaUnit: 'ענף תקשוב' },
+      { personalNumber: '4000010', fullName: 'הילה ברקוביץ', akaUnit: 'ענף תקשוב' },
+      { personalNumber: '4000011', fullName: 'ניר אדרי', akaUnit: 'ענף תקשוב' },
+      { personalNumber: '4000012', fullName: 'גיל שרון', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000013', fullName: 'עומר לב', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '4000014', fullName: 'דנה קליין', akaUnit: 'ענף תקשוב' },
+      { personalNumber: '4000015', fullName: 'יואב שמש', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000016', fullName: 'רוני חיים', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '4000017', fullName: 'עדי מור', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000018', fullName: 'אריאל גל', akaUnit: 'ענף תקשוב' },
+      { personalNumber: '4000019', fullName: 'נועם דגן', akaUnit: 'ענף לוגיסטיקה' },
+      { personalNumber: '4000020', fullName: 'שי ברק', akaUnit: 'ענף טכנולוגיה' },
+      { personalNumber: '4000021', fullName: 'טל אורן', akaUnit: 'ענף תקשוב' },
+    ];
+  }
 
-  const teamLeaders = await Promise.all([
-    prisma.user.create({
-      data: {
-        uniqueId: '3000001',
-        name: 'נועה מזרחי',
-        role: 'TEAM_LEADER',
-        teamId: teams[0].id,
-        branchId: branches[0].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '3000002',
-        name: 'אורי גולן',
-        role: 'TEAM_LEADER',
-        teamId: teams[1].id,
-        branchId: branches[0].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '3000003',
-        name: 'תמר פרץ',
-        role: 'TEAM_LEADER',
-        teamId: teams[2].id,
-        branchId: branches[1].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '3000004',
-        name: 'דניאל רוזנברג',
-        role: 'TEAM_LEADER',
-        teamId: teams[3].id,
-        branchId: branches[1].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '3000005',
-        name: 'שירה כהן',
-        role: 'TEAM_LEADER',
-        teamId: teams[4].id,
-        branchId: branches[2].id,
-      },
-    }),
-  ]);
+  // Assign roles: 1st = BIS, next 3 = COORD, next 5 = TL, rest = TRAINEE
+  const usersToCreate = kartoffelEntities.slice(0, 30);
+  const createdUsers: any[] = [];
+  for (let i = 0; i < usersToCreate.length; i++) {
+    const e = usersToCreate[i];
+    const role = i === 0 ? 'BIS_CDR' : i <= 3 ? 'BRANCH_COORD' : i <= 8 ? 'TEAM_LEADER' : 'TRAINEE';
+    const branchId = i <= 3 ? branches[Math.min(i, branches.length - 1)]?.id
+      : i <= 8 ? branches[Math.min(i - 4, branches.length - 1)]?.id
+      : branches[i % branches.length]?.id;
+    const teamId = role === 'TEAM_LEADER' ? teams[Math.min(i - 4, teams.length - 1)]?.id
+      : role === 'TRAINEE' ? teams[i % teams.length]?.id
+      : undefined;
 
-  const trainees = await Promise.all([
-    prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-        uniqueId: '4000001',
-        name: 'יונתן לוי',
-        role: 'TRAINEE',
-        teamId: teams[0].id,
-        branchId: branches[0].id,
+        uniqueId: e.personalNumber,
+        name: e.fullName,
+        role: role as any,
+        branchId: branchId ?? null,
+        teamId: teamId ?? null,
       },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000002',
-        name: 'מאיה אברהם',
-        role: 'TRAINEE',
-        teamId: teams[0].id,
-        branchId: branches[0].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000003',
-        name: 'עידו כהן',
-        role: 'TRAINEE',
-        teamId: teams[0].id,
-        branchId: branches[0].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000004',
-        name: 'רונה דוד',
-        role: 'TRAINEE',
-        teamId: teams[1].id,
-        branchId: branches[0].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000005',
-        name: 'אלון פרידמן',
-        role: 'TRAINEE',
-        teamId: teams[1].id,
-        branchId: branches[0].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000006',
-        name: 'שקד מזרחי',
-        role: 'TRAINEE',
-        teamId: teams[2].id,
-        branchId: branches[1].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000007',
-        name: 'ליאור גולן',
-        role: 'TRAINEE',
-        teamId: teams[2].id,
-        branchId: branches[1].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000008',
-        name: 'נגה רוזנברג',
-        role: 'TRAINEE',
-        teamId: teams[3].id,
-        branchId: branches[1].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000009',
-        name: 'תומר שמעוני',
-        role: 'TRAINEE',
-        teamId: teams[4].id,
-        branchId: branches[2].id,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        uniqueId: '4000010',
-        name: 'הילה ברקוביץ',
-        role: 'TRAINEE',
-        teamId: teams[4].id,
-        branchId: branches[2].id,
-      },
-    }),
-  ]);
+    });
+    createdUsers.push(user);
+  }
 
-  console.log(
-    `Created users: 1 admin, ${coords.length} coords, ${teamLeaders.length} leaders, ${trainees.length} trainees`,
-  );
+  const admin = createdUsers[0];
+  const coords = createdUsers.slice(1, 4);
+  const teamLeaders = createdUsers.slice(4, 9);
+  const trainees = createdUsers.slice(9);
 
   // ── Courses (תואם ל־frontend mock — 5 קורסים) ──
   const cFoundation = await prisma.course.create({
