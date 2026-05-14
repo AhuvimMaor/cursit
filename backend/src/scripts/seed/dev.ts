@@ -15,23 +15,10 @@ const main = async () => {
     return d.toISOString().slice(0, 10);
   };
 
-  // ── Branches ──
-  const branches = await Promise.all([
-    prisma.branch.create({ data: { name: 'ענף טכנולוגיה' } }),
-    prisma.branch.create({ data: { name: 'ענף לוגיסטיקה' } }),
-    prisma.branch.create({ data: { name: 'ענף תקשוב' } }),
-  ]);
-  console.log(`Created ${branches.length} branches`);
-
-  // ── Teams ──
-  const teams = await Promise.all([
-    prisma.team.create({ data: { name: 'צוות אלפא', branchId: branches[0].id } }),
-    prisma.team.create({ data: { name: 'צוות בראבו', branchId: branches[0].id } }),
-    prisma.team.create({ data: { name: 'צוות גאמא', branchId: branches[1].id } }),
-    prisma.team.create({ data: { name: 'צוות דלתא', branchId: branches[1].id } }),
-    prisma.team.create({ data: { name: 'צוות הדס', branchId: branches[2].id } }),
-  ]);
-  console.log(`Created ${teams.length} teams`);
+  // ── Branches + Teams (from Kartoffel akaUnit values) ──
+  // Will be populated after fetching entities from Kartoffel
+  let branches: { id: number; name: string }[] = [];
+  let teams: { id: number; name: string; branchId: number }[] = [];
 
   // ── Users from Kartoffel ──
   const axios = (await import('axios')).default;
@@ -54,68 +41,82 @@ const main = async () => {
   } catch (err) {
     console.log('Kartoffel unavailable, using fallback users');
     kartoffelEntities = [
-      { personalNumber: '1000000', fullName: 'דוד כהן', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '2000001', fullName: 'שרה לוי', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '2000002', fullName: 'יוסי אברהם', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '2000003', fullName: 'מיכל דוד', akaUnit: 'ענף תקשוב' },
-      { personalNumber: '3000001', fullName: 'נועה מזרחי', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '3000002', fullName: 'אורי גולן', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '3000003', fullName: 'תמר פרץ', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '3000004', fullName: 'דניאל רוזנברג', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '3000005', fullName: 'שירה כהן', akaUnit: 'ענף תקשוב' },
-      { personalNumber: '4000001', fullName: 'יונתן לוי', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000002', fullName: 'מאיה אברהם', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000003', fullName: 'עידו כהן', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000004', fullName: 'רונה דוד', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000005', fullName: 'אלון פרידמן', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000006', fullName: 'שקד מזרחי', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '4000007', fullName: 'ליאור גולן', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '4000008', fullName: 'נגה רוזנברג', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '4000009', fullName: 'תומר שמעוני', akaUnit: 'ענף תקשוב' },
-      { personalNumber: '4000010', fullName: 'הילה ברקוביץ', akaUnit: 'ענף תקשוב' },
-      { personalNumber: '4000011', fullName: 'ניר אדרי', akaUnit: 'ענף תקשוב' },
-      { personalNumber: '4000012', fullName: 'גיל שרון', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000013', fullName: 'עומר לב', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '4000014', fullName: 'דנה קליין', akaUnit: 'ענף תקשוב' },
-      { personalNumber: '4000015', fullName: 'יואב שמש', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000016', fullName: 'רוני חיים', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '4000017', fullName: 'עדי מור', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000018', fullName: 'אריאל גל', akaUnit: 'ענף תקשוב' },
-      { personalNumber: '4000019', fullName: 'נועם דגן', akaUnit: 'ענף לוגיסטיקה' },
-      { personalNumber: '4000020', fullName: 'שי ברק', akaUnit: 'ענף טכנולוגיה' },
-      { personalNumber: '4000021', fullName: 'טל אורן', akaUnit: 'ענף תקשוב' },
+      { personalNumber: '1000000', fullName: 'דוד כהן', akaUnit: 'צפון' },
+      { personalNumber: '2000001', fullName: 'שרה לוי', akaUnit: 'צפון' },
+      { personalNumber: '2000002', fullName: 'יוסי אברהם', akaUnit: 'מרכז' },
+      { personalNumber: '2000003', fullName: 'מיכל דוד', akaUnit: 'דרום' },
+      { personalNumber: '3000001', fullName: 'נועה מזרחי', akaUnit: 'צפון' },
+      { personalNumber: '3000002', fullName: 'אורי גולן', akaUnit: 'צפון' },
+      { personalNumber: '3000003', fullName: 'תמר פרץ', akaUnit: 'מרכז' },
+      { personalNumber: '3000004', fullName: 'דניאל רוזנברג', akaUnit: 'מרכז' },
+      { personalNumber: '3000005', fullName: 'שירה כהן', akaUnit: 'דרום' },
+      { personalNumber: '4000001', fullName: 'יונתן לוי', akaUnit: 'צפון' },
+      { personalNumber: '4000002', fullName: 'מאיה אברהם', akaUnit: 'צפון' },
+      { personalNumber: '4000003', fullName: 'עידו כהן', akaUnit: 'צפון' },
+      { personalNumber: '4000004', fullName: 'רונה דוד', akaUnit: 'צפון' },
+      { personalNumber: '4000005', fullName: 'אלון פרידמן', akaUnit: 'צפון' },
+      { personalNumber: '4000006', fullName: 'שקד מזרחי', akaUnit: 'מרכז' },
+      { personalNumber: '4000007', fullName: 'ליאור גולן', akaUnit: 'מרכז' },
+      { personalNumber: '4000008', fullName: 'נגה רוזנברג', akaUnit: 'מרכז' },
+      { personalNumber: '4000009', fullName: 'תומר שמעוני', akaUnit: 'דרום' },
+      { personalNumber: '4000010', fullName: 'הילה ברקוביץ', akaUnit: 'דרום' },
+      { personalNumber: '4000011', fullName: 'ניר אדרי', akaUnit: 'דרום' },
+      { personalNumber: '4000012', fullName: 'גיל שרון', akaUnit: 'צפון' },
+      { personalNumber: '4000013', fullName: 'עומר לב', akaUnit: 'מרכז' },
+      { personalNumber: '4000014', fullName: 'דנה קליין', akaUnit: 'דרום' },
+      { personalNumber: '4000015', fullName: 'יואב שמש', akaUnit: 'צפון' },
+      { personalNumber: '4000016', fullName: 'רוני חיים', akaUnit: 'מרכז' },
+      { personalNumber: '4000017', fullName: 'עדי מור', akaUnit: 'צפון' },
+      { personalNumber: '4000018', fullName: 'אריאל גל', akaUnit: 'דרום' },
+      { personalNumber: '4000019', fullName: 'נועם דגן', akaUnit: 'מרכז' },
+      { personalNumber: '4000020', fullName: 'שי ברק', akaUnit: 'צפון' },
+      { personalNumber: '4000021', fullName: 'טל אורן', akaUnit: 'דרום' },
     ];
   }
 
-  // Assign roles: 1st = BIS, next 3 = COORD, next 5 = TL, rest = TRAINEE
+  // Create branches from unique akaUnit values
+  const unitNames = [...new Set(kartoffelEntities.map((e) => e.akaUnit).filter(Boolean))];
+  const branchMap = new Map<string, number>();
+  for (const name of unitNames.slice(0, 6)) {
+    const branch = await prisma.branch.create({ data: { name } });
+    branches.push(branch);
+    branchMap.set(name, branch.id);
+  }
+  console.log(`Created ${branches.length} branches from Kartoffel: ${branches.map((b) => b.name).join(', ')}`);
+
+  // Create teams (one per branch)
+  for (const branch of branches) {
+    const team = await prisma.team.create({ data: { name: `צוות ${branch.name}`, branchId: branch.id } });
+    teams.push(team);
+  }
+  console.log(`Created ${teams.length} teams`);
+
+  // Assign roles: 1st = BIS, next per-branch = COORD, next 5 = TL, rest = TRAINEE
   const usersToCreate = kartoffelEntities.slice(0, 30);
   const createdUsers: any[] = [];
   for (let i = 0; i < usersToCreate.length; i++) {
     const e = usersToCreate[i];
-    const role = i === 0 ? 'BIS_CDR' : i <= 3 ? 'BRANCH_COORD' : i <= 8 ? 'TEAM_LEADER' : 'TRAINEE';
-    const branchId = i <= 3 ? branches[Math.min(i, branches.length - 1)]?.id
-      : i <= 8 ? branches[Math.min(i - 4, branches.length - 1)]?.id
-      : branches[i % branches.length]?.id;
-    const teamId = role === 'TEAM_LEADER' ? teams[Math.min(i - 4, teams.length - 1)]?.id
-      : role === 'TRAINEE' ? teams[i % teams.length]?.id
-      : undefined;
+    const role = i === 0 ? 'BIS_CDR' : i <= branches.length ? 'BRANCH_COORD' : i <= branches.length + 5 ? 'TEAM_LEADER' : 'TRAINEE';
+    const entityBranchId = branchMap.get(e.akaUnit) ?? branches[i % branches.length]?.id ?? null;
+    const teamForBranch = teams.find((t) => t.branchId === entityBranchId);
+    const teamId = (role === 'TEAM_LEADER' || role === 'TRAINEE') ? (teamForBranch?.id ?? null) : null;
 
     const user = await prisma.user.create({
       data: {
         uniqueId: e.personalNumber,
         name: e.fullName,
         role: role as any,
-        branchId: branchId ?? null,
-        teamId: teamId ?? null,
+        branchId: entityBranchId,
+        teamId,
       },
     });
     createdUsers.push(user);
   }
 
   const admin = createdUsers[0];
-  const coords = createdUsers.slice(1, 4);
-  const teamLeaders = createdUsers.slice(4, 9);
-  const trainees = createdUsers.slice(9);
+  const coords = createdUsers.filter((u) => u.role === 'BRANCH_COORD');
+  const teamLeaders = createdUsers.filter((u) => u.role === 'TEAM_LEADER');
+  const trainees = createdUsers.filter((u) => u.role === 'TRAINEE');
 
   // ── Courses (תואם ל־frontend mock — 5 קורסים) ──
   const cFoundation = await prisma.course.create({
