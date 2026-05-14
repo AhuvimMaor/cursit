@@ -111,6 +111,8 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
   const [registerModalId, setRegisterModalId] = useState<number | null>(null);
   const [regFiles, setRegFiles] = useState<File[]>([]);
   const [candidacyInstanceId, setCandidacyInstanceId] = useState<number | null>(null);
+  const templatesFetcher = useCallback(() => api.getTemplates(), []);
+  const { data: templates } = useApi(templatesFetcher);
 
   const isAdmin = user.role === Role.BIS_CDR;
 
@@ -491,9 +493,23 @@ export const CoursesUnifiedHub = ({ user }: CoursesUnifiedHubProps) => {
         size='sm'
       >
         <div className='space-y-4'>
-          <p className='text-sm text-muted-foreground'>
-            ניתן לצרף קבצים לבקשת הרישום (אישור מפקד, מסמכים נוספים)
-          </p>
+          {/* Template PDFs to download */}
+          {templates?.filter((t) => t.type === 'registration' && t.pdfPath).map((t) => (
+            <div key={t.id} className='flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5'>
+              <FileText size={16} className='shrink-0 text-amber-600' />
+              <div className='min-w-0 flex-1'>
+                <p className='text-xs font-medium text-amber-900'>{t.name}</p>
+                <p className='text-[10px] text-amber-700'>הורד, מלא בכתב יד, סרוק והעלה למטה</p>
+              </div>
+              <a
+                href={api.getTemplatePdfUrl(t.id)}
+                download
+                className='shrink-0 rounded-md bg-amber-500 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-amber-600'
+              >
+                הורד PDF
+              </a>
+            </div>
+          ))}
           <div>
             <label className='mb-1 block text-xs font-medium text-foreground'>
               קבצים מצורפים (אופציונלי)
@@ -726,6 +742,9 @@ function CandidacyQuickForm({ instanceId, user, onClose }: CandidacyQuickFormPro
         <LoadingSpinner />
       ) : (
         <div className='space-y-4'>
+          {/* Template PDFs */}
+          <CandidacyTemplateDownloads />
+
           <div>
             <label className='mb-1 block text-xs font-medium text-foreground'>בחר מועמד</label>
             <select
@@ -813,5 +832,32 @@ function CandidacyQuickForm({ instanceId, user, onClose }: CandidacyQuickFormPro
         </div>
       )}
     </Modal>
+  );
+}
+
+function CandidacyTemplateDownloads() {
+  const fetcher = useCallback(() => api.getTemplates(), []);
+  const { data: templates } = useApi(fetcher);
+  const candidacyTemplates = templates?.filter((t) => t.type === 'candidacy' && t.pdfPath) ?? [];
+  if (candidacyTemplates.length === 0) return null;
+  return (
+    <>
+      {candidacyTemplates.map((t) => (
+        <div key={t.id} className='flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5'>
+          <FileText size={16} className='shrink-0 text-amber-600' />
+          <div className='min-w-0 flex-1'>
+            <p className='text-xs font-medium text-amber-900'>{t.name}</p>
+            <p className='text-[10px] text-amber-700'>הורד, מלא בכתב יד, סרוק והעלה למטה</p>
+          </div>
+          <a
+            href={api.getTemplatePdfUrl(t.id)}
+            download
+            className='shrink-0 rounded-md bg-amber-500 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-amber-600'
+          >
+            הורד PDF
+          </a>
+        </div>
+      ))}
+    </>
   );
 }

@@ -417,6 +417,8 @@ function CandidacyForm({ teamId, userUniqueId, isAdmin, onSubmitted, onCancel }:
         />
       </div>
 
+      <CandidacyTemplateSection />
+
       <div>
         <label className='mb-1 block text-xs font-medium text-foreground'>קבצים מצורפים</label>
         <label className='flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-4 transition-colors hover:border-primary/40 hover:bg-primary/5'>
@@ -464,6 +466,33 @@ function CandidacyForm({ teamId, userUniqueId, isAdmin, onSubmitted, onCancel }:
           הגש מועמדות
         </button>
       </div>
+    </div>
+  );
+}
+
+function CandidacyTemplateSection() {
+  const fetcher = useCallback(() => api.getTemplates(), []);
+  const { data: templates } = useApi(fetcher);
+  const candidacyTemplates = templates?.filter((t) => t.type === 'candidacy' && t.pdfPath) ?? [];
+  if (candidacyTemplates.length === 0) return null;
+  return (
+    <div className='space-y-2'>
+      {candidacyTemplates.map((t) => (
+        <div key={t.id} className='flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5'>
+          <FileText size={16} className='shrink-0 text-amber-600' />
+          <div className='min-w-0 flex-1'>
+            <p className='text-xs font-medium text-amber-900'>{t.name}</p>
+            <p className='text-[10px] text-amber-700'>הורד, מלא בכתב יד, סרוק והעלה למטה</p>
+          </div>
+          <a
+            href={api.getTemplatePdfUrl(t.id)}
+            download
+            className='shrink-0 rounded-md bg-amber-500 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-amber-600'
+          >
+            הורד PDF
+          </a>
+        </div>
+      ))}
     </div>
   );
 }
