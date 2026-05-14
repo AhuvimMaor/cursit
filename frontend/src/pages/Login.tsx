@@ -88,9 +88,11 @@ export const Login = ({ onLogin }: LoginProps) => {
   const roleGroups = [Role.BIS_CDR, Role.BRANCH_COORD, Role.TEAM_LEADER, Role.TRAINEE];
   const usersToShow = users && users.length > 0 ? users : FALLBACK_USERS;
 
-  const filteredKartoffel = kartoffelMembers?.filter(
-    (m) => kartoffelSearch.length >= 2 && m.displayName.includes(kartoffelSearch),
-  ) ?? [];
+  const filteredKartoffel = kartoffelSearch.length >= 2
+    ? (kartoffelMembers ?? [])
+        .filter((m) => (m.fullName || m.displayName || '').includes(kartoffelSearch))
+        .slice(0, 10)
+    : [];
 
   return (
     <div
@@ -237,20 +239,20 @@ export const Login = ({ onLogin }: LoginProps) => {
                 />
                 {filteredKartoffel.length > 0 && (
                   <div className='mt-2 max-h-40 space-y-1 overflow-y-auto'>
-                    {filteredKartoffel.slice(0, 8).map((m) => (
+                    {filteredKartoffel.map((m) => (
                       <button
                         key={m.personalNumber}
                         type='button'
-                        onClick={() => handleKartoffelLogin(m.personalNumber, m.displayName)}
+                        onClick={() => handleKartoffelLogin(m.personalNumber, m.fullName || m.displayName || '')}
                         disabled={loggingIn}
                         className='flex w-full items-center gap-3 rounded-lg border border-white/8 bg-white/4 px-3 py-2 text-right transition-all hover:border-white/15 hover:bg-white/8'
                       >
                         <div className='flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-300'>
-                          {m.displayName.charAt(0)}
+                          {(m.fullName || m.displayName || '?').charAt(0)}
                         </div>
                         <div className='min-w-0 flex-1'>
-                          <p className='truncate text-xs font-medium text-white'>{m.displayName}</p>
-                          <p className='truncate text-[10px] text-slate-500'>{m.rank} · {m.hierarchy}</p>
+                          <p className='truncate text-xs font-medium text-white'>{m.fullName || m.displayName}</p>
+                          <p className='truncate text-[10px] text-slate-500'>{m.personalNumber}</p>
                         </div>
                       </button>
                     ))}

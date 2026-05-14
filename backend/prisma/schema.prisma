@@ -316,11 +316,15 @@ model AttachedFile {
 
 model FormTemplate {
   id         Int      @id @default(autoincrement())
-  courseId   Int
-  course     Course   @relation(fields: [courseId], references: [id])
+  courseId   Int?
+  course     Course?  @relation(fields: [courseId], references: [id])
+  type       String   @db.VarChar(32) @default("registration") // "registration" | "candidacy"
   name       String   @db.VarChar(128)
-  fields     Json
+  fields     Json     // array of { name, label, type, required }
+  pdfPath    String?  @db.VarChar(512) // S3 path to downloadable PDF template
+  pdfName    String?  @db.VarChar(256) // original filename
   isRequired Boolean  @default(true)
+  isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

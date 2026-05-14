@@ -11,6 +11,7 @@ import { healthRoutes } from './health.js';
 import { infoRoutes } from './info.js';
 import { kartoffelRoutes } from './kartoffel.js';
 import { registrationRoutes } from './registrations.js';
+import { templateRoutes } from './templates.js';
 
 export const registerRoutes = (fastify: FastifyInstance) => {
   fastify.register(healthRoutes, { prefix: '/api/health' });
@@ -24,4 +25,5 @@ export const registerRoutes = (fastify: FastifyInstance) => {
   fastify.register(infoRoutes, { prefix: '/api/info' });
   fastify.register(eventRoutes, { prefix: '/api/events' });
   fastify.register(kartoffelRoutes, { prefix: '/api/kartoffel' });
+  fastify.register(templateRoutes, { prefix: '/api/templates' });
 };

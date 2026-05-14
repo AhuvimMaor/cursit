@@ -2308,6 +2308,18 @@ export type Team = {
 
 export type User = AuthUser & { isActive?: boolean };
 
+export type FormTemplate = {
+  id: number;
+  courseId: number | null;
+  type: string;
+  name: string;
+  fields: { name: string; label: string; type: string; required: boolean }[];
+  pdfPath: string | null;
+  pdfName: string | null;
+  isRequired: boolean;
+  isActive: boolean;
+};
+
 export type KartoffelEntity = {
   id: string;
   identityCard: string;
@@ -2441,6 +2453,22 @@ export const api = {
   getKartoffelMembers: () => fetchJson<KartoffelEntity[]>('/kartoffel/members'),
   searchKartoffel: (q: string) => fetchJson<KartoffelEntity[]>(`/kartoffel/search?q=${encodeURIComponent(q)}`),
   getMyKartoffelTeam: (personalNumber: string) => fetchJson<KartoffelEntity[]>(`/kartoffel/my-team/${personalNumber}`),
+
+  // Form Templates
+  getTemplates: () => fetchJson<FormTemplate[]>('/templates'),
+  getTemplatePdfUrl: (id: number) => `${API_BASE}/templates/${id}/pdf`,
+  createTemplate: async (formData: FormData): Promise<FormTemplate> => {
+    const user = JSON.parse(localStorage.getItem('bisli_user') || '{}');
+    const res = await fetch(`${API_BASE}/templates`, {
+      method: 'POST',
+      headers: { 'x-user-id': String(user.id || '') },
+      body: formData,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  deleteTemplate: (id: number) => fetchJson<void>(`/templates/${id}`, { method: 'DELETE' }),
+
   createUser: (data: {
     uniqueId: string;
     name: string;
