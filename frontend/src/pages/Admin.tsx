@@ -1,16 +1,16 @@
-import { Loader2, Plus, Save, Search } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { Download, FileText, Loader2, Plus, Save, Search, Trash2, Upload } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Modal } from '../components/Modal';
 import { ScreenGuide } from '../components/ScreenGuide';
 import { toast } from '../components/Toast';
 import { useApi } from '../hooks/useApi';
-import type { Branch, Course, CourseInstance, EventLog, User } from '../lib/api';
+import type { Branch, Course, CourseInstance, EventLog, FormTemplate, User } from '../lib/api';
 import { api } from '../lib/api';
 import { HEBREW_ROLES, Role } from '../lib/roles';
 
-type Tab = 'users' | 'courses' | 'branches' | 'audit';
+type Tab = 'users' | 'courses' | 'branches' | 'templates' | 'audit';
 
 export const Admin = () => {
   const [tab, setTab] = useState<Tab>('users');
@@ -19,6 +19,7 @@ export const Admin = () => {
     { key: 'users', label: 'משתמשים' },
     { key: 'courses', label: 'קורסים ומחזורים' },
     { key: 'branches', label: 'ענפים וצוותות' },
+    { key: 'templates', label: 'טפסים' },
     { key: 'audit', label: 'יומן פעולות' },
   ];
 
@@ -51,6 +52,7 @@ export const Admin = () => {
       {tab === 'users' && <UsersTab />}
       {tab === 'courses' && <CoursesTab />}
       {tab === 'branches' && <BranchesTab />}
+      {tab === 'templates' && <TemplatesTab />}
       {tab === 'audit' && <AuditTab />}
     </div>
   );
@@ -1123,6 +1125,166 @@ function AuditTab() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function TemplatesTab() {
+  const fetcher = useCallback(() => api.getTemplates(), []);
+  const { data: templates, loading, refetch } = useApi(fetcher);
+  const [showCreate, setShowCreate] = useState(false);
+  const [name, setName] = useState('');
+  const [type, setType] = useState('registration');
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleCreate = async () => {
+    if (!name) return;
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('type', type);
+      formData.append('fields', '[]');
+      if (pdfFile) formData.append('pdf', pdfFile);
+      await api.createTemplate(formData);
+      toast.success('טופס נוצר בהצלחה');
+      setShowCreate(false);
+      setName('');
+      setPdfFile(null);
+      refetch();
+    } catch {
+      toast.error('שגיאה ביצירת הטופס');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    await api.deleteTemplate(id);
+    toast.success('טופס נמחק');
+    refetch();
+  };
+
+  if (loading) return <LoadingSpinner />;
+
+  return (
+    <div className='space-y-4'>
+      <div className='flex items-center justify-between'>
+        <h2 className='text-sm font-bold text-foreground'>טפסים ומסמכים ({templates?.length ?? 0})</h2>
+        <button
+          type='button'
+          onClick={() => setShowCreate(true)}
+          className='flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90'
+        >
+          <Plus size={14} />
+          טופס חדש
+        </button>
+      </div>
+
+      <p className='text-xs text-muted-foreground'>
+        העלה מסמך PDF שמשתתפים ימלאו בכתב יד, יסרקו ויעלו עם הבקשה שלהם.
+      </p>
+
+      {templates && templates.length > 0 ? (
+        <div className='space-y-2'>
+          {templates.map((t: FormTemplate) => (
+            <div key={t.id} className='flex items-center justify-between rounded-lg border border-border bg-white px-4 py-3 shadow-sm'>
+              <div className='flex items-center gap-3'>
+                <FileText size={18} className='text-primary' />
+                <div>
+                  <p className='text-sm font-medium text-foreground'>{t.name}</p>
+                  <p className='text-xs text-muted-foreground'>
+                    {t.type === 'registration' ? 'רישום לקורס' : 'מועמדות לפיקוד'}
+                    {t.pdfName && ` · ${t.pdfName}`}
+                  </p>
+                </div>
+              </div>
+              <div className='flex items-center gap-2'>
+                {t.pdfPath && (
+                  <a
+                    href={api.getTemplatePdfUrl(t.id)}
+                    download
+                    className='flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                  >
+                    <Download size={12} />
+                    הורד PDF
+                  </a>
+                )}
+                <button
+                  type='button'
+                  onClick={() => handleDelete(t.id)}
+                  className='rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-500'
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className='rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center'>
+          <FileText size={32} className='mx-auto mb-2 text-muted-foreground/40' />
+          <p className='text-sm text-muted-foreground'>אין טפסים עדיין</p>
+        </div>
+      )}
+
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title='יצירת טופס חדש' size='md'>
+        <div className='space-y-4'>
+          <div>
+            <label className='mb-1 block text-xs font-medium text-foreground'>שם הטופס</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder='למשל: טופס אישור מפקד'
+              className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className='mb-1 block text-xs font-medium text-foreground'>סוג</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className='w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-primary'
+            >
+              <option value='registration'>רישום לקורס</option>
+              <option value='candidacy'>מועמדות לפיקוד</option>
+            </select>
+          </div>
+          <div>
+            <label className='mb-1 block text-xs font-medium text-foreground'>קובץ PDF להורדה</label>
+            <label className='flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-4 transition-colors hover:border-primary/40 hover:bg-primary/5'>
+              <Upload size={20} className='text-muted-foreground' />
+              <span className='text-xs font-medium text-muted-foreground'>
+                {pdfFile ? pdfFile.name : 'לחץ לבחירת קובץ PDF'}
+              </span>
+              <input
+                ref={inputRef}
+                type='file'
+                accept='.pdf'
+                className='hidden'
+                onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </div>
+          <div className='flex justify-end gap-2 pt-2'>
+            <button type='button' onClick={() => setShowCreate(false)} className='rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted'>
+              ביטול
+            </button>
+            <button
+              type='button'
+              onClick={handleCreate}
+              disabled={submitting || !name}
+              className='flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50'
+            >
+              {submitting && <Loader2 size={14} className='animate-spin' />}
+              צור טופס
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
