@@ -6,6 +6,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { registerOAuth } from './plugins/oauth.js';
+import { registerSession } from './plugins/session.js';
 import { registerRoutes } from './routes/index.js';
 
 const serverDir = path.dirname(fileURLToPath(import.meta.url));
@@ -18,7 +20,12 @@ export const createServer = async (): Promise<FastifyInstance> => {
 
   await fastify.register(cors, {
     origin: true,
+    credentials: true,
   });
+
+  // Session + OAuth (production auth)
+  await registerSession(fastify);
+  await registerOAuth(fastify);
 
   registerRoutes(fastify);
 
