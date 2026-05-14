@@ -4,7 +4,6 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createWriteStream } from 'fs';
 import { mkdir, rm } from 'fs/promises';
 import { join } from 'path';
@@ -111,12 +110,8 @@ class S3Storage implements StorageProvider {
     );
   }
 
-  async getDownloadUrl(key: string): Promise<string> {
-    const command = new GetObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-    });
-    return getSignedUrl(this.client, command, { expiresIn: 3600 });
+  async getDownloadUrl(_key: string): Promise<string> {
+    throw new Error('Use getBuffer instead - presigned URLs removed');
   }
 
   async getBuffer(key: string): Promise<Buffer> {
