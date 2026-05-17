@@ -1,8 +1,8 @@
 ARG NODE_VERSION=22
 
-FROM node:${NODE_VERSION}-alpine AS base
+FROM node:${NODE_VERSION}-slim AS base
 
-RUN apk add --no-cache libc6-compat tzdata curl
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates tzdata && rm -rf /var/lib/apt/lists/*
 ENV TZ=Asia/Jerusalem
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -40,7 +40,7 @@ COPY package*.json ./
 COPY shared/package*.json ./shared/
 COPY backend/package*.json ./backend/
 
-RUN npm ci --omit=dev --ignore-scripts --workspaces
+COPY --from=builder /app/node_modules ./node_modules
 
 COPY --from=builder /app/backend/prisma ./backend/prisma
 RUN npx prisma generate --schema=backend/prisma/schema.prisma
