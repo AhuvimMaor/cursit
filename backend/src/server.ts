@@ -48,6 +48,17 @@ export const createServer = async (): Promise<FastifyInstance> => {
         version: '1.0.0',
       },
       servers: [{ url: `http://localhost:${process.env.PORT || 8001}` }],
+      components: {
+        securitySchemes: {
+          devUser: {
+            type: 'apiKey',
+            in: 'header',
+            name: 'x-user-id',
+            description: 'Dev mode: pass a user ID (e.g. 1) to authenticate',
+          },
+        },
+      },
+      security: [{ devUser: [] }],
       tags: Object.entries(tagDescriptions).map(([name, description]) => ({ name, description })),
     },
   });
