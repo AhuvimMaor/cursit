@@ -1,5 +1,7 @@
 import cors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUi from '@fastify/swagger-ui';
 import Fastify from 'fastify';
 import type { FastifyInstance } from 'fastify';
 import { existsSync } from 'node:fs';
@@ -21,6 +23,53 @@ export const createServer = async (): Promise<FastifyInstance> => {
   await fastify.register(cors, {
     origin: true,
     credentials: true,
+  });
+
+  const tagDescriptions: Record<string, string> = {
+    health: 'Service health & readiness',
+    auth: 'Authentication, session, users',
+    branches: 'Branches (units)',
+    courses: 'Courses, instances, phases',
+    gantt: 'Gantt timeline data',
+    candidacy: 'Command candidacies',
+    registrations: 'Course registrations',
+    files: 'File upload / download',
+    info: 'Info pages',
+    events: 'Event log',
+    kartoffel: 'Kartoffel directory integration',
+    templates: 'Form templates',
+  };
+
+  await fastify.register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: 'Bisli API',
+        description: 'Cursit/Bisli backend API',
+        version: '1.0.0',
+      },
+      servers: [{ url: `http://localhost:${process.env.PORT || 8001}` }],
+      tags: Object.entries(tagDescriptions).map(([name, description]) => ({ name, description })),
+    },
+  });
+  await fastify.register(fastifySwaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: {
+      docExpansion: 'none',
+      deepLinking: true,
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+    },
+  });
+
+  fastify.addHook('onRoute', (route) => {
+    if (!route.url.startsWith('/api/')) return;
+    const segment = route.url.split('/')[2];
+    if (!segment) return;
+    const schema = (route.schema ?? {}) as { tags?: string[]; hide?: boolean };
+    if (!schema.tags || schema.tags.length === 0) {
+      schema.tags = [segment];
+    }
+    route.schema = schema;
   });
 
   // Session + OAuth (production auth)

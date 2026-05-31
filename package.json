@@ -12,7 +12,7 @@
     "lint": "npm run lint --workspaces",
     "format": "npm run format --workspaces",
     "typecheck": "npm run typecheck --workspaces",
-    "dev": "concurrently \"npm run dev --workspace=backend\" \"node scripts/wait-for-port.mjs 8000 && npm run dev --workspace=frontend\"",
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"node scripts/wait-for-port.mjs 8001 && npm run dev --workspace=frontend\"",
     "prisma:generate": "npm run prisma:generate --workspace=backend",
     "prisma:migrate": "npm run prisma:migrate --workspace=backend",
     "prisma:studio": "npm run prisma:studio --workspace=backend",
